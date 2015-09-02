@@ -25,9 +25,9 @@ ADD scripts/install /tmp/
 ADD scripts/run_all_in_one /usr/sbin/
 
 # Proxy servers
-ENV http_proxy http://proxy.esl.cisco.com:80
-ENV https_proxy http://proxy.esl.cisco.com:80
-ENV no_proxy "cisco.com"
+#ENV http_proxy http://proxy:80
+#ENV https_proxy http://proxy:80
+#ENV no_proxy "domain.com"
 
 # Run Install script
 RUN /tmp/install
