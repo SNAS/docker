@@ -1,0 +1,133 @@
+#!/bin/bash
+# All-in-One run script
+#
+#  Copyright (c) 2013-2015 Cisco Systems, Inc. and others.  All rights reserved.
+#
+#  This program and the accompanying materials are made available under the
+#  terms of the Eclipse Public License v1.0 which accompanies this distribution,
+#  and is available at http://www.eclipse.org/legal/epl-v10.html
+#
+# Author: Tim Evens <tievens@openbmp.org>
+#
+
+OPENBMP_BUFFER=${OPENBMP_BUFFER:=16}
+MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:="OpenBMP"}
+OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD:="openbmp"}
+OPENBMP_DB_USER=${OPENBMP_DB_USER:="openbmp"}
+
+source /etc/default/openbmpd
+
+#
+# System info
+#
+if [[ ${MEM:-""} = "" ]]; then    
+    SYS_TOTAL_MEM=$(grep MemTotal /proc/meminfo | awk '{print int($2 / 1000)}')
+else
+    SYS_TOTAL_MEM=$(($MEM * 1024))
+fi
+
+SYS_NUM_CPU=$(grep processor /proc/cpuinfo | wc -l)
+
+# Update the MySQL configuration
+rm -f /etc/mysql/my.cnf
+cp /etc/mysql/my.cnf.tmpl /etc/mysql/my.cnf
+
+sed -r -i "s/MEM_20_PERCENT\$/$((${SYS_TOTAL_MEM} * 20 / 100))M/g" /etc/mysql/my.cnf
+sed -r -i "s/MEM_75_PERCENT\$/$((${SYS_TOTAL_MEM} * 70 / 100))M/g" /etc/mysql/my.cnf
+sed -r -i "s/MEM_75_PERCENT_BY_ONE\$/$((${SYS_TOTAL_MEM} * 70 / 100 / 1000))/g" /etc/mysql/my.cnf
+sed -r -i "s/IO_THREADS\$/$((${SYS_NUM_CPU} * 3))/g" /etc/mysql/my.cnf
+
+# --
+# -- Reinitialize the database
+# -- 
+if [[ ! -e /data/mysql/openBMP || $REINIT_DB = 1 ]]; then
+    rm -rf /data/mysql/*
+
+    # Reinitialize the database
+    mysql_install_db --user=mysql --basedir /usr --explicit_defaults_for_timestamp --datadir=/data/mysql
+    service mysql start
+    mysqladmin -u root password "${MYSQL_ROOT_PASSWORD}"
+    mysqladmin -u root -h $(uname -n) password "${MYSQL_ROOT_PASSWORD}"
+
+    # Create the mysql DB and create user
+    mysql -u root --password=${MYSQL_ROOT_PASSWORD} <<DB_CREATE
+
+       create database openBMP;
+       create user 'openbmp'@'localhost' identified by "${OPENBMP_DB_PASSWORD}";
+       create user 'openbmp'@'%' identified by "${OPENBMP_DB_PASSWORD}";
+       grant all on openBMP.* to 'openbmp'@'localhost';
+       grant all on openBMP.* to 'openbmp'@'%';
+
+DB_CREATE
+
+    # Import schema
+    mysql -u root --password=${MYSQL_ROOT_PASSWORD} openBMP < /usr/local/mysql-openbmp-current.db
+fi
+
+# Start services
+service rsyslog start
+service ntp start
+service mysql restart
+cron
+
+# Update ENV for openbmpd
+sed -r -i "s/OPENBMP_BUFFER=.*/OPENBMP_BUFFER=${OPENBMP_BUFFER}/" /etc/default/openbmpd
+sed -r -i "s/OPENBMP_DB_USER=.*/OPENBMP_DB_USER=${OPENBMP_DB_USER}/" /etc/default/openbmpd
+sed -r -i "s/OPENBMP_DB_PASSWORD=.*/OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD}/" /etc/default/openbmpd
+sed -r -i "s/OPENBMP_DB_NAME=.*/OPENBMP_DB_NAME=${OPENBMP_DB_NAME}/" /etc/default/openbmpd
+
+#
+# update configs and hosts for FQDN
+#
+if [[ ${API_FQDN:-""} = "" ]]; then
+    echo "API_FQDN not set, cannot proceed."
+    exit 1
+else 
+    # Update the hosts file
+    grep -q ${API_FQDN} /etc/hosts
+    if [[ $? -ne 0 ]]; then
+        echo "127.0.0.1               ${API_FQDN}" >> /etc/hosts
+    fi
+
+    # Update kafka config
+    sed -i -r "s/^[#]*advertised.host.name=.*/advertised.host.name=${API_FQDN}/" \
+            /usr/local/kafka/config/server.properties
+fi
+
+# Start Kafka
+cd /usr/local/kafka
+bin/zookeeper-server-start.sh config/zookeeper.properties > /var/log/zookeeper.log &
+sleep 1
+bin/kafka-server-start.sh config/server.properties > /var/log/kafka.log &
+
+if [[ $(ps -ef | grep kafka  | grep -v grep | wc -l) -ne 2 ]]; then
+    echo "FAILED to start Kafka or Zookeeper, cannot proceed"
+    echo "FAILED to start Kafka or Zookeeper, cannot proceed" > /var/log/openbmpd.log
+    exit 1
+fi
+
+cd /tmp
+
+# configure DB_REST - Incase the password is different
+sed -r -i "s/username=\"[^\"]+\"/username=\"${OPENBMP_DB_USER}\"/" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
+sed -r -i "s/password=\"[^\"]+\"/password=\"${OPENBMP_DB_PASSWORD}\"/" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
+sed -r -i "s/jdbc:mysql:[^\"]+/jdbc:mysql:\/\/localhost:3306\/openBMP\//" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
+
+service tomcat7 restart
+
+# Start the MySQL consumer
+java -Xmx512M -Xms512M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
+        -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost \
+        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -zk localhost > /var/log/mysql-consumer.log &     
+
+if [[ $(ps -ef | grep kafka  | grep -v grep | wc -l) -ne 2 ]]; then
+    echo "FAILED to start Kafka or Zookeeper, cannot proceed"
+    echo "FAILED to start Kafka or Zookeeper, cannot proceed" > /var/log/openbmpd.log
+    exit 1
+fi
+
+# Start openbmpd and wait - openbmpd runs in foreground
+pkill openbmpd
+source /etc/default/openbmpd
+/usr/bin/openbmpd -f -l /var/log/openbmpd.log -a ${API_FQDN} -k localhost:9092 -hi 1 -p 5000 -b ${OPENBMP_BUFFER}
+

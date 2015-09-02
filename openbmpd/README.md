@@ -1,3 +1,0 @@
-OpenBMP Collector (openbmpd)
-----------------------------
-

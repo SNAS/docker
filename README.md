@@ -1,6 +1,5 @@
 # OpenBMP docker files
-Docker files for installing **openbmpd/collector**, **db_rest**, and **mysql**.
-
+Docker files for OpenBMP.
 
 (Prerequisite) Platform Docker Install
 --------------------------------------
@@ -20,6 +19,10 @@ any other distro/platform.  Follow the [Docker Install Instructions](http://docs
 
     apt-get update
     apt-get install -y wget   
+    
+    apt-get install linux-image-extra-$(uname -r)
+    modprobe aufs
+    
     wget -qO- https://get.docker.com/ | sh
     
     # Optionally add a non-root user to run docker as
@@ -28,7 +31,11 @@ any other distro/platform.  Follow the [Docker Install Instructions](http://docs
     # Logout and log back so the group takes affect. 
     
 
-Optionally configure **/etc/default/docker**
+Optionally configure **/etc/default/docker** (e.g. for proxy config)
+
+    export http_proxy="http://proxy:80/"
+    export https_proxy="http://proxy:80/"
+    export no_proxy="127.0.0.1,openbmp.org,/var/run/docker.sock"
 
 Make sure you can run '**docker run hello-world**' successfully.
 
@@ -62,9 +69,7 @@ For more examples and ideas, visit:
 
 Install OpenBMP using Docker
 ----------------------------
-Each docker file contains a readme file detailing the specific install/setup, see below:
+Each docker file contains a readme file, see below:
 
-* [Collector (openbmpd) ReadMe](openbmpd/README.md)
-* [Database Rest Interface ReadMe](db_rest/README.md)
-* [MySQL ReadMe](mysql/README.md)
+* [All-In-One](aio/README.md)
 
