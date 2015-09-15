@@ -14,6 +14,7 @@ OPENBMP_BUFFER=${OPENBMP_BUFFER:=16}
 MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:="OpenBMP"}
 OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD:="openbmp"}
 OPENBMP_DB_USER=${OPENBMP_DB_USER:="openbmp"}
+OPENBMP_DB_NAME=${OPENBMP_DB_NAME:="openBMP"}
 
 source /etc/default/openbmpd
 
@@ -70,6 +71,14 @@ service ntp start
 service mysql restart
 cron
 
+# Add missing ENV items
+grep -q OPENBMP_DB_USER /etc/default/openbmpd
+if [[ $? -eq 1 ]]; then
+    echo "OPENBMP_DB_USER=${OPENBMP_DB_USER}" >> /etc/default/openbmpd
+    echo "OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD}" >> /etc/default/openbmpd
+    echo "OPENBMP_DB_NAME=${OPENBMP_DB_NAME}" >> /etc/default/openbmpd
+fi
+
 # Update ENV for openbmpd
 sed -r -i "s/OPENBMP_BUFFER=.*/OPENBMP_BUFFER=${OPENBMP_BUFFER}/" /etc/default/openbmpd
 sed -r -i "s/OPENBMP_DB_USER=.*/OPENBMP_DB_USER=${OPENBMP_DB_USER}/" /etc/default/openbmpd
@@ -97,7 +106,7 @@ fi
 # Start Kafka
 cd /usr/local/kafka
 bin/zookeeper-server-start.sh config/zookeeper.properties > /var/log/zookeeper.log &
-sleep 1
+sleep 8
 bin/kafka-server-start.sh config/server.properties > /var/log/kafka.log &
 
 if [[ $(ps -ef | grep kafka  | grep -v grep | wc -l) -ne 2 ]]; then

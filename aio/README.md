@@ -26,12 +26,7 @@ Docker host should be **Linux x86_64**.   Follow the [Docker Instructions](https
 
 - - -
 ### 3) Create MySQL volumes
-MySQL/MariaDB uses a shared container (host) volume so that if you upgrade, restart,
-change the container it doesn't loose the DB contents.  **The DB will 
-be initialized
-if the volume is empty.**  If the volume is not empty, the DB will be left unchanged. 
-This can be an issue when the schemas need to change.  Therefore, to reinit the DB and
-apply the latest schema use docker run with the ```-e REINIT_DB=1```
+MySQL/MariaDB uses a shared container (host) volume so that if you upgrade, restart, change the container it doesn't loose the DB contents.  **The DB will be initialized if the volume is empty.**  If the volume is not empty, the DB will be left unchanged.  This can be an issue when the schemas need to change. Therefore, to reinit the DB and apply the latest schema use docker run with the ```-e REINIT_DB=1```
 
 When starting the container you will need to map a host file system to **/data/mysql** for the container.  You do this using the ```-v <host path>:/data/mysql```.  The below examples default to the host path of ```/var/openbmp/mysql```
 
