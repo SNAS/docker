@@ -32,7 +32,7 @@ apt-get -qq install -y ntp debconf-utils wget unzip python python-mysql.connecto
 # --
 apt-get -qq install -y openjdk-7-jre-headless tomcat7
 
-# Update the tomcat defaults
+# Update the tomcat files
 mv /tmp/tomcat7 /etc/default/
 rm -rf /var/lib/tomcat7/webapps/ROOT/*
 sed -i 's/8080/8001/g' /var/lib/tomcat7/conf/server.xml
@@ -90,9 +90,9 @@ wget -O /usr/local/mysql-openbmp-current.db https://raw.githubusercontent.com/Op
 # -- 
 mkdir /usr/local/kafka
 cd /tmp
-wget http://supergsego.com/apache/kafka/0.8.2.1/kafka_2.10-0.8.2.1.tgz
-tar xzf kafka_2.10-0.8.2.1.tgz
-cd kafka_2.10-0.8.2.1
+wget http://supergsego.com/apache/kafka/0.8.2.2/kafka_2.10-0.8.2.2.tgz
+tar xzf kafka_2.10-0.8.2.2.tgz
+cd kafka_2.10-0.8.2.2
 mv * /usr/local/kafka/
 cd /usr/local/kafka/
 
@@ -107,7 +107,7 @@ sed -i -r 's/^[#]*log.dirs=.*/log.dirs=\/var\/kafka/' config/server.properties
 # -- OpenBMPd collector
 # --
 # Install the latest openbmpd package
-wget --no-check-certificate --auth-no-challenge --http-user=readonly --http-password=openbmp \
+wget --no-check-certificate --auth-no-challenge \
          https://build-jenkins.openbmp.org:8443/job/openbmp-server-ubuntu-trusty/lastSuccessfulBuild/artifact/*zip*/archive.zip
 
 unzip archive.zip
@@ -119,10 +119,11 @@ rm -rf archive.zip archive
 # -- MySQL consumer
 # --
 cd /tmp
-wget --no-check-certificate --auth-no-challenge --http-user=readonly --http-password=openbmp \
+wget --no-check-certificate \
          https://build-jenkins.openbmp.org:8443/job/openbmp-mysql-consumer/lastSuccessfulBuild/artifact/*zip*/archive.zip
 
 unzip archive.zip
+rm -f archive.zip
 mv archive/target/openbmp-mysql-consumer-*.jar /usr/local/openbmp-mysql-consumer.jar
 rm -rf archive
 
@@ -145,7 +146,6 @@ echo "*/30 *  * * *   root    /usr/bin/gen-asn-stats.py > /var/log/gen-asn-stats
 cat <<END >> /etc/hosts
 
 173.39.209.78   csr1.openbmp.org
-10.22.165.140   tievens-dev-csr
 
 END
 

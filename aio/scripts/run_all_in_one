@@ -125,7 +125,7 @@ sed -r -i "s/jdbc:mysql:[^\"]+/jdbc:mysql:\/\/localhost:3306\/openBMP\//" /var/l
 service tomcat7 restart
 
 # Start the MySQL consumer
-java -Xmx512M -Xms512M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
+java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
         -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost \
         -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -zk localhost > /var/log/mysql-consumer.log &     
 
@@ -138,5 +138,5 @@ fi
 # Start openbmpd and wait - openbmpd runs in foreground
 pkill openbmpd
 source /etc/default/openbmpd
-/usr/bin/openbmpd -f -l /var/log/openbmpd.log -a ${API_FQDN} -k localhost:9092 -hi 1 -p 5000 -b ${OPENBMP_BUFFER}
+/usr/bin/openbmpd -f -l /var/log/openbmpd.log -a ${API_FQDN} -k localhost:9092 -hi 5 -p 5000 -b ${OPENBMP_BUFFER}
 

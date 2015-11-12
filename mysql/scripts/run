@@ -1,0 +1,138 @@
+#!/bin/bash
+# All-in-One run script
+#
+#  Copyright (c) 2013-2015 Cisco Systems, Inc. and others.  All rights reserved.
+#
+#  This program and the accompanying materials are made available under the
+#  terms of the Eclipse Public License v1.0 which accompanies this distribution,
+#  and is available at http://www.eclipse.org/legal/epl-v10.html
+#
+# Author: Tim Evens <tievens@openbmp.org>
+#
+MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:="OpenBMP"}
+OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD:="openbmp"}
+OPENBMP_DB_USER=${OPENBMP_DB_USER:="openbmp"}
+OPENBMP_DB_NAME=${OPENBMP_DB_NAME:="openBMP"}
+
+#
+# System info
+#
+if [[ ${MEM:-""} = "" ]]; then    
+    SYS_TOTAL_MEM=$(grep MemTotal /proc/meminfo | awk '{print int($2 / 1000)}')
+else
+    SYS_TOTAL_MEM=$(($MEM * 1024))
+fi
+
+SYS_NUM_CPU=$(grep processor /proc/cpuinfo | wc -l)
+
+
+DOCKER_HOST_IP=$(ip route | grep default | head -1 | awk '{ print $3}')
+
+if [[ ${KAFKA_FQDN:-""} == "" ]]; then
+   echo "ERROR: Missing ENV KAFKA_FQDN.  Cannot proceed until you add that in docker run -e KAFKA_FQDN=<...>"
+   exit 1
+else
+    if [[ ${KAFKA_FQDN} == "localhost" ]]; then
+        KAFKA_FQDN="docker-localhost"
+
+    elif [[ ${KAFKA_FQDN} == "127.0.0.1" ]]; then
+        KAFKA_FQDN="docker-localhost"
+
+    elif [[ ${KAFKA_FQDN} == "::1" ]]; then
+        KAFKA_FQDN="docker-localhost"
+    fi
+fi
+
+# Update the MySQL configuration
+rm -f /etc/mysql/my.cnf
+cp /etc/mysql/my.cnf.tmpl /etc/mysql/my.cnf
+
+sed -r -i "s/MEM_20_PERCENT\$/$((${SYS_TOTAL_MEM} * 20 / 100))M/g" /etc/mysql/my.cnf
+sed -r -i "s/MEM_75_PERCENT\$/$((${SYS_TOTAL_MEM} * 70 / 100))M/g" /etc/mysql/my.cnf
+sed -r -i "s/MEM_75_PERCENT_BY_ONE\$/$((${SYS_TOTAL_MEM} * 70 / 100 / 1000))/g" /etc/mysql/my.cnf
+sed -r -i "s/IO_THREADS\$/$((${SYS_NUM_CPU} * 3))/g" /etc/mysql/my.cnf
+
+# Update the source file that the cron script uses
+grep -q OPENBMP_DB_USER /etc/default/openbmpd
+if [[ $? -eq 1 ]]; then
+    echo "OPENBMP_DB_USER=${OPENBMP_DB_USER}" >> /etc/default/openbmpd
+    echo "OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD}" >> /etc/default/openbmpd
+    echo "OPENBMP_DB_NAME=${OPENBMP_DB_NAME}" >> /etc/default/openbmpd
+fi
+
+# Update ENV for openbmpd
+sed -r -i "s/OPENBMP_DB_USER=.*/OPENBMP_DB_USER=${OPENBMP_DB_USER}/" /etc/default/openbmpd
+sed -r -i "s/OPENBMP_DB_PASSWORD=.*/OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD}/" /etc/default/openbmpd
+sed -r -i "s/OPENBMP_DB_NAME=.*/OPENBMP_DB_NAME=${OPENBMP_DB_NAME}/" /etc/default/openbmpd
+
+# --
+# -- Reinitialize the database
+# -- 
+if [[ ! -e /data/mysql/openBMP || $REINIT_DB = 1 ]]; then
+    rm -rf /data/mysql/*
+
+    # Reinitialize the database
+    mysql_install_db --user=mysql --basedir /usr --explicit_defaults_for_timestamp --datadir=/data/mysql
+    service mysql start
+    mysqladmin -u root password "${MYSQL_ROOT_PASSWORD}"
+    mysqladmin -u root -h $(uname -n) password "${MYSQL_ROOT_PASSWORD}"
+
+    # Create the mysql DB and create user
+    mysql -u root --password=${MYSQL_ROOT_PASSWORD} <<DB_CREATE
+
+       create database openBMP;
+       create user 'openbmp'@'localhost' identified by "${OPENBMP_DB_PASSWORD}";
+       create user 'openbmp'@'%' identified by "${OPENBMP_DB_PASSWORD}";
+       grant all on openBMP.* to 'openbmp'@'localhost';
+       grant all on openBMP.* to 'openbmp'@'%';
+
+DB_CREATE
+
+    # Import schema
+    mysql -u root --password=${MYSQL_ROOT_PASSWORD} openBMP < /usr/local/mysql-openbmp-current.db
+
+    # Import whois data
+    if [[ -f /config/mysql/whois.db ]]; then
+        mysql -u openbmp --password=${OPENBMP_DB_PASSWORD} openBMP < /config/mysql/whois.db
+    else
+        mysql -u openbmp --password=${OPENBMP_DB_PASSWORD} openBMP < /usr/local/whois.db
+    fi
+
+    # Import geo_ip data
+    if [[ -f /config/mysql/geo_ip.db ]]; then
+        mysql -u openbmp --password=${OPENBMP_DB_PASSWORD} openBMP < /config/mysql/geo_ip.db
+    else
+        mysql -u openbmp --password=${OPENBMP_DB_PASSWORD} openBMP < /usr/local/geo_ip.db
+    fi
+
+fi
+
+# Update the hosts file
+echo "$DOCKER_HOST_IP         docker-localhost" >> /etc/hosts
+
+# Update the etc hosts file
+if [[ -f /config/hosts ]]; then
+    cat /config/hosts >> /etc/hosts
+fi
+
+# Start services
+service rsyslog start
+service mysql restart
+cron
+
+sleep 1
+service tomcat7 restart
+
+
+# Start the MySQL consumer
+java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
+        -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost \
+        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -zk ${KAFKA_FQDN} > /var/log/mysql-consumer1.log &
+java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
+        -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost \
+        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -zk ${KAFKA_FQDN} > /var/log/mysql-consumer2.log &
+
+# run last one in foreground so that docker waits
+java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
+        -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost \
+        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -zk ${KAFKA_FQDN} > /var/log/mysql-consumer3.log

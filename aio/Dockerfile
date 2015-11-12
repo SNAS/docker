@@ -35,6 +35,7 @@ RUN /tmp/install
 # Define mount points.
 VOLUME ["/data/mysql"]
 VOLUME ["/var/mysqltmp"]
+VOLUME ["/config"]
 
 # Define working directory.
 WORKDIR /tmp

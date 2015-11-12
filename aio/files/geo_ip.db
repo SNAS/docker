@@ -1,0 +1,68 @@
+-- MySQL dump 10.13  Distrib 5.6.27, for debian-linux-gnu (x86_64)
+--
+-- Host: 127.0.0.1    Database: openBMP
+-- ------------------------------------------------------
+-- Server version	5.5.5-10.0.22-MariaDB-1~trusty
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `geo_ip`
+--
+
+DROP TABLE IF EXISTS `geo_ip`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `geo_ip` (
+  `addr_type` enum('ipv4','ipv6') NOT NULL,
+  `ip_start` varbinary(16) NOT NULL,
+  `ip_end` varbinary(16) NOT NULL,
+  `country` char(2) NOT NULL,
+  `stateprov` varchar(80) NOT NULL,
+  `city` varchar(80) NOT NULL,
+  `latitude` float NOT NULL,
+  `longitude` float NOT NULL,
+  `timezone_offset` float NOT NULL,
+  `timezone_name` varchar(64) NOT NULL,
+  `isp_name` varchar(128) NOT NULL,
+  `connection_type` enum('dialup','isdn','cable','dsl','fttx','wireless') DEFAULT NULL,
+  `organization_name` varchar(128) DEFAULT NULL,
+  PRIMARY KEY (`ip_start`),
+  KEY `idx_city` (`city`),
+  KEY `idx_stateprov` (`stateprov`),
+  KEY `idx_country` (`country`),
+  KEY `idx_addr_type` (`addr_type`),
+  KEY `idx_ip_end` (`ip_end`),
+  KEY `idx_ip_range` (`ip_start`,`ip_end`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `geo_ip`
+--
+
+LOCK TABLES `geo_ip` WRITE;
+/*!40000 ALTER TABLE `geo_ip` DISABLE KEYS */;
+INSERT INTO `geo_ip` VALUES ('ipv6','\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0','ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ','US','CA','San Jose',37.3639,-121.929,0,'0','MyISP',NULL,'MyOrg'),('ipv6','\0\0\0\0ÿÿ\0\0\0\0\0\0\0\0\0\0','\0\0\0\0ÿÿÿÿÿÿÿÿÿÿÿÿ','US','IL','Chicago',41.9742,-87.9073,0,'0','MyISP',NULL,'MyOrg'),('ipv4','\0','ÿ','US','TX','Austin',30.1974,-97.6663,0,'0','MyISP',NULL,'MyOrg'),('ipv4','\n\0\0\0','\nÿÿ','US','WA','Seattle',47.4502,122.309,0,'0','MyISP',NULL,'MyOrg'),('ipv4','\n€\0\0','\nÿÿÿ','US','CO','Denver',39.8561,-104.674,0,'0','MyISP',NULL,'MyOrg'),('ipv6',' \0\0\0\0\0\0\0\0\0\0\0\0\0\0',' ÿÿÿÿÿÿÿÿÿÿÿÿÿÿ','US','NY','New York',40.6413,-73.7781,0,'0','MyISP',NULL,'MyOrg'),('ipv6',' \0\0\0\0\0\0\0\0\0\0\0\0\0\0',' ÿÿÿÿÿÿÿÿÿÿÿÿÿÿ','US','DC','Washington DC',38.9531,-77.4565,0,'0','MyISP',NULL,'MyOrg'),('ipv4','d','d','US','DC','Washington DC',38.9531,-77.4565,0,'0','MyISP',NULL,'MyOrg'),('ipv4','d\n','d\n','US','CA','San Francisco',37.6213,-122.379,0,'0','MyISP',NULL,'MyOrg'),('ipv4','¬\0\0','¬ÿÿ','US','IL','Chicago',41.9742,-87.9073,0,'0','MyISP',NULL,'MyOrg'),('ipv4','À¨\0\0','À¨ÿÿ','US','NY','New York',40.6413,-73.7781,0,'0','MyISP',NULL,'MyOrg'),('ipv6','ü\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0','ü\0ÿÿÿÿÿÿÿÿÿÿÿÿÿÿ','US','WA','Seattle',47.4502,122.309,0,'0','MyISP',NULL,'MyOrg'),('ipv6','þ€\0\0\0\0\0\0\0\0\0\0\0\0\0\0','þ€ÿÿÿÿÿÿÿÿÿÿÿÿÿÿ','US','CO','Denver',39.8561,-104.674,0,'0','MyISP',NULL,'MyOrg');
+/*!40000 ALTER TABLE `geo_ip` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2015-11-10 22:01:27

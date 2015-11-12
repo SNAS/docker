@@ -1,0 +1,123 @@
+#!/bin/bash
+# MySQL install script
+#
+#  Copyright (c) 2013-2015 Cisco Systems, Inc. and others.  All rights reserved.
+#
+#  This program and the accompanying materials are made available under the
+#  terms of the Eclipse Public License v1.0 which accompanies this distribution,
+#  and is available at http://www.eclipse.org/legal/epl-v10.html
+#
+# Author: Tim Evens <tievens@openbmp.org>
+
+#
+# Defaults
+#
+MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:="OpenBMP"}
+OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD:="openbmp"}
+
+# Disable interactive
+export DEBIAN_FRONTEND=noninteractive
+
+# Install base packages
+apt-get update
+
+# Fix ubuntu docker install
+sed -i 's/exit 101/exit 0/' /usr/sbin/policy-rc.d
+
+# General depend install
+apt-get -qq install -y wget unzip python python-mysql.connector openjdk-7-jre-headless
+
+# --
+# -- MySQL/MariaDB server
+# --
+
+# Update the debian selection file for prompts
+#sed -i "s/MYSQL_ROOT_PASSWORD/${MYSQL_ROOT_PASSWORD}/" /tmp/debconf-set-selections 
+
+# Install MySQL/MariaDB Server
+apt-get -y install software-properties-common
+apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db
+add-apt-repository 'deb http://sfo1.mirrors.digitalocean.com/mariadb/repo/10.0/ubuntu trusty main'
+apt-get update
+apt-get -y install mariadb-server
+
+# Create the tmpfs for mysql
+if [[ ! -e /var/mysqltmp ]]; then
+    mkdir /var/mysqltmp
+    chown mysql:mysql /var/mysqltmp
+fi
+
+mv -f /etc/mysql/debian.cnf /etc/mysql/debian.cnf.bk
+ln -s /etc/mysql/my.cnf /etc/mysql/debian.cnf
+
+# Extract the whois.db.gz file
+cd /usr/local
+gzip -d whois.db.gz
+
+# Download the current OpenBMP schema
+wget -O /usr/local/mysql-openbmp-current.db https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/database/mysql-openbmp-current.db
+
+# --
+# -- MySQL consumer
+# --
+cd /tmp
+wget --no-check-certificate \
+         https://build-jenkins.openbmp.org:8443/job/openbmp-mysql-consumer/lastSuccessfulBuild/artifact/*zip*/archive.zip
+
+unzip archive.zip
+rm -f archive.zip
+mv archive/target/openbmp-mysql-consumer-*.jar /usr/local/openbmp-mysql-consumer.jar
+rm -rf archive
+rm -f archive.zip
+
+# --
+# -- Tomcat and API
+# --
+apt-get -qq install -y openjdk-7-jre-headless tomcat7
+
+# Update the tomcat files
+mv /tmp/tomcat7 /etc/default/
+rm -rf /var/lib/tomcat7/webapps/ROOT/*
+sed -i 's/8080/8001/g' /var/lib/tomcat7/conf/server.xml
+
+# Extract and install DB rest
+wget --no-check-certificate  \
+         https://build-jenkins.openbmp.org:8443/job/openbmp-db_rest/lastSuccessfulBuild/artifact/*zip*/archive.zip
+
+unzip archive.zip
+rm -f archive.zip
+mv archive/target/db_rest.war /tmp/
+rm -rf archive
+mkdir -p /var/lib/tomcat7/webapps/db_rest
+cd /var/lib/tomcat7/webapps/db_rest
+unzip /tmp/db_rest.war
+chown -R tomcat7:tomcat7 /var/lib/tomcat7/webapps/db_rest
+cd /tmp
+rm -f /tmp/db_rest.war
+
+
+# configure DB_REST
+sed -r -i "s/username=\"[^\"]+\"/username=\"openbmp\"/" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
+sed -r -i "s/password=\"[^\"]+\"/password=\"${OPENBMP_DB_PASSWORD}\"/" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
+sed -r -i "s/jdbc:mysql:[^\"]+/jdbc:mysql:\/\/localhost:3306\/openBMP\//" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
+
+
+# --
+# -- Cron scripts
+# --
+cd /tmp
+wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cron_scripts/gen-asn-stats/gen-asn-stats.py
+wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cron_scripts/db-maint/openbmp-db-maint
+mv openbmp-db-maint /etc/cron.weekly
+chmod 755 /etc/cron.weekly/openbmp-db-maint 
+mv gen-asn-stats.py /usr/bin/
+chmod 755 /usr/bin/gen-asn-stats.py
+echo "*/30 *  * * *   root    /usr/bin/gen-asn-stats.py > /var/log/gen-asn-stats.log" >> /etc/crontab
+
+
+# -- 
+# -- Clean up
+# -- 
+apt-get clean
+rm -rf /var/lib/apt/lists/* /var/tmp/*
+rm -f /tmp/install

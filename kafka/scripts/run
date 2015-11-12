@@ -1,0 +1,61 @@
+#!/bin/bash
+# All-in-One run script
+#
+#  Copyright (c) 2013-2015 Cisco Systems, Inc. and others.  All rights reserved.
+#
+#  This program and the accompanying materials are made available under the
+#  terms of the Eclipse Public License v1.0 which accompanies this distribution,
+#  and is available at http://www.eclipse.org/legal/epl-v10.html
+#
+# Author: Tim Evens <tievens@openbmp.org>
+#
+
+#
+# System info
+#
+if [[ ${MEM:-""} = "" ]]; then    
+    SYS_TOTAL_MEM=$(grep MemTotal /proc/meminfo | awk '{print int($2 / 1000)}')
+else
+    SYS_TOTAL_MEM=$(($MEM * 1024))
+fi
+
+SYS_NUM_CPU=$(grep processor /proc/cpuinfo | wc -l)
+
+
+
+
+# Start services
+service rsyslog start
+cron
+
+#
+# Update kafka fqdn/hostname
+#
+DOCKER_HOST_IP=$(ip route | grep default | head -1 | awk '{ print $3}')
+if [[ ${KAFKA_FQDN:-""} = "" ]]; then
+    echo "ERROR: KAFKA_FQDN not set using docker run -e KAFKA_FQDN=<value>, cannot proceed."
+    exit 1
+else
+    if [[ ${KAFKA_FQDN} == "localhost" ]]; then
+        KAFKA_FQDN="docker-localhost"
+
+    elif [[ ${KAFKA_FQDN} == "127.0.0.1" ]]; then
+        KAFKA_FQDN="docker-localhost"
+
+    elif [[ ${KAFKA_FQDN} == "::1" ]]; then
+        KAFKA_FQDN="docker-localhost"
+    fi
+
+    # Update the hosts file
+    echo "$DOCKER_HOST_IP         docker-localhost" >> /etc/hosts
+
+    # Update kafka config
+    sed -i -r "s/^[#]*advertised.host.name=.*/advertised.host.name=${KAFKA_FQDN}/" \
+            /usr/local/kafka/config/server.properties
+fi
+
+# Start Kafka
+cd /usr/local/kafka
+bin/zookeeper-server-start.sh config/zookeeper.properties > /var/log/zookeeper.log &
+sleep 8
+bin/kafka-server-start.sh config/server.properties > /var/log/kafka.log
