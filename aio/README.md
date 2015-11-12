@@ -51,7 +51,21 @@ should create a tmpfs and then map that as a volume in docker using ``-v /var/op
     echo "tmpfs /var/openbmp/mysqltmp tmpfs defaults,gid=nogroup,uid=nobody,size=2400M,mode=0777 0 0" >> /etc/fstab
     mount /var/openbmp/mysqltmp
 
-### 4) Run docker container
+### 4) [OPTIONAL] Add persistent configs
+
+#### On host create persistent config location
+
+> ONLY USE TMPFS IF YOU HAVE ENOUGH MEMORY
+
+    mkdir -p /var/openbmp/config
+    chmod 777 /var/openbmp/config
+
+#### config/hosts
+You can add custom host entries so that the collector will reverse lookup IP addresses
+using a persistent hosts file.
+
+
+### 5) Run docker container
 
 > #### Memory for MySQL
 > Mysql requires a lot of memory in order to run well.   Currently there is not a  consistent way to check on the container memory limit. The ```-e MEM=size_in_GB`` should be specified in gigabytes (e.g. 16 for 16GB of RAM).   If you fail to supply this variable, the default will use **/proc/meminfo** .  In other words, the default is to assume no memory limit. 
@@ -91,6 +105,10 @@ openbmp, use ```docker exec openbmp_aio tail -f /var/log/openbmpd.log```
 Alternatively, it can be easier at times to navigate all the log files from within the container. You can do so using:
     
     docker exec -it openbmp_aio bash
+
+#### docker logs
+You can use ```docker logs openbmp_aio``` to get the console logs. This is useful if the container exits due to
+invalid start or for another reason.
 
 #### System Start/Restart Config (ubuntu 14.04)
 By default, the containers will not start automatically on system boot/startup.  You can use the below example to instruct the openbmp/aio container to start automatically. 

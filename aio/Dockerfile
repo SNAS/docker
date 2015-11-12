@@ -23,6 +23,8 @@ ADD defaults/my.cnf /etc/mysql/my.cnf.tmpl
 ADD defaults/tomcat7 /tmp/
 ADD scripts/install /tmp/
 ADD scripts/run_all_in_one /usr/sbin/
+ADD files/geo_ip.db /usr/local/
+COPY files/whois.db.gz /usr/local/
 
 # Proxy servers
 #ENV http_proxy http://proxy:80

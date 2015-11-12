@@ -63,6 +63,21 @@ DB_CREATE
 
     # Import schema
     mysql -u root --password=${MYSQL_ROOT_PASSWORD} openBMP < /usr/local/mysql-openbmp-current.db
+
+    # Import whois data
+    if [[ -f /config/mysql/whois.db ]]; then
+        mysql -u openbmp --password=${OPENBMP_DB_PASSWORD} openBMP < /config/mysql/whois.db
+    else
+        mysql -u openbmp --password=${OPENBMP_DB_PASSWORD} openBMP < /usr/local/whois.db
+    fi
+
+    # Import geo_ip data
+    if [[ -f /config/mysql/geo_ip.db ]]; then
+        mysql -u openbmp --password=${OPENBMP_DB_PASSWORD} openBMP < /config/mysql/geo_ip.db
+    else
+        mysql -u openbmp --password=${OPENBMP_DB_PASSWORD} openBMP < /usr/local/geo_ip.db
+    fi
+
 fi
 
 # Start services
@@ -103,6 +118,11 @@ else
             /usr/local/kafka/config/server.properties
 fi
 
+# Update the etc hosts file
+if [[ -f /config/hosts ]]; then
+    cat /config/hosts >> /etc/hosts
+fi
+
 # Start Kafka
 cd /usr/local/kafka
 bin/zookeeper-server-start.sh config/zookeeper.properties > /var/log/zookeeper.log &
@@ -127,7 +147,14 @@ service tomcat7 restart
 # Start the MySQL consumer
 java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
         -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost \
-        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -zk localhost > /var/log/mysql-consumer.log &     
+        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -zk localhost > /var/log/mysql-consumer1.log &
+java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
+        -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost \
+        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -zk localhost > /var/log/mysql-consumer2.log &
+java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
+        -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost \
+        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -zk localhost > /var/log/mysql-consumer3.log &
+
 
 if [[ $(ps -ef | grep kafka  | grep -v grep | wc -l) -ne 2 ]]; then
     echo "FAILED to start Kafka or Zookeeper, cannot proceed"

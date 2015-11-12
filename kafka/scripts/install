@@ -36,6 +36,7 @@ tar xzf kafka_2.10-0.8.2.2.tgz
 cd kafka_2.10-0.8.2.2
 mv * /usr/local/kafka/
 cd /usr/local/kafka/
+rm -rf /tmp/kafka_2.10-0.8.2.2*
 
 # Create the logs dir for Kafka topics
 mkdir -m 0750 /var/kafka
