@@ -111,7 +111,7 @@ You can use ```docker logs openbmp_mysql``` to get the console logs. This is use
 invalid start or for another reason.
 
 #### System Start/Restart Config (ubuntu 14.04)
-By default, the containers will not start automatically on system boot/startup.  You can use the below example to instruct the openbmp/aio container to start automatically. 
+By default, the containers will not start automatically on system boot/startup.  You can use the below example to instruct the container to start automatically.
 
 You can read more at [Docker Host Integration](https://docs.docker.com/articles/host_integration/) on how to start containers automatically. 
 

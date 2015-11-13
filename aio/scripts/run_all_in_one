@@ -7,7 +7,7 @@
 #  terms of the Eclipse Public License v1.0 which accompanies this distribution,
 #  and is available at http://www.eclipse.org/legal/epl-v10.html
 #
-# Author: Tim Evens <tievens@openbmp.org>
+# Author: Tim Evens <tim@openbmp.org>
 #
 
 OPENBMP_BUFFER=${OPENBMP_BUFFER:=16}
