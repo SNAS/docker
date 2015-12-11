@@ -15,13 +15,15 @@ MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:="OpenBMP"}
 OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD:="openbmp"}
 OPENBMP_DB_USER=${OPENBMP_DB_USER:="openbmp"}
 OPENBMP_DB_NAME=${OPENBMP_DB_NAME:="openBMP"}
+GROUP_ID=${GROUP_ID:="openbmp-mysql-consumer"}
+
 
 source /etc/default/openbmpd
 
 #
 # System info
 #
-if [[ ${MEM:-""} = "" ]]; then    
+if [[ ${MEM:-""} = "" ]]; then
     SYS_TOTAL_MEM=$(grep MemTotal /proc/meminfo | awk '{print int($2 / 1000)}')
 else
     SYS_TOTAL_MEM=$(($MEM * 1024))
@@ -40,7 +42,7 @@ sed -r -i "s/IO_THREADS\$/$((${SYS_NUM_CPU} * 3))/g" /etc/mysql/my.cnf
 
 # --
 # -- Reinitialize the database
-# -- 
+# --
 if [[ ! -e /data/mysql/openBMP || $REINIT_DB = 1 ]]; then
     rm -rf /data/mysql/*
 
@@ -106,7 +108,7 @@ sed -r -i "s/OPENBMP_DB_NAME=.*/OPENBMP_DB_NAME=${OPENBMP_DB_NAME}/" /etc/defaul
 if [[ ${API_FQDN:-""} = "" ]]; then
     echo "API_FQDN not set, cannot proceed."
     exit 1
-else 
+else
     # Update the hosts file
     grep -q ${API_FQDN} /etc/hosts
     if [[ $? -ne 0 ]]; then
@@ -146,13 +148,13 @@ service tomcat7 restart
 
 # Start the MySQL consumer
 java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
-        -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost \
+        -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost  -g ${GROUP_ID} \
         -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -zk localhost > /var/log/mysql-consumer1.log &
 java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
-        -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost \
+        -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost  -g ${GROUP_ID} \
         -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -zk localhost > /var/log/mysql-consumer2.log &
 java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
-        -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost \
+        -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost  -g ${GROUP_ID} \
         -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -zk localhost > /var/log/mysql-consumer3.log &
 
 
@@ -166,4 +168,3 @@ fi
 pkill openbmpd
 source /etc/default/openbmpd
 /usr/bin/openbmpd -f -l /var/log/openbmpd.log -a ${API_FQDN} -k localhost:9092 -hi 5 -p 5000 -b ${OPENBMP_BUFFER}
-
