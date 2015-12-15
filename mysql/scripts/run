@@ -18,7 +18,7 @@ GROUP_ID=${GROUP_ID:="openbmp-mysql-consumer"}
 #
 # System info
 #
-if [[ ${MEM:-""} = "" ]]; then    
+if [[ ${MEM:-""} = "" ]]; then
     SYS_TOTAL_MEM=$(grep MemTotal /proc/meminfo | awk '{print int($2 / 1000)}')
 else
     SYS_TOTAL_MEM=$(($MEM * 1024))
@@ -68,7 +68,7 @@ sed -r -i "s/OPENBMP_DB_NAME=.*/OPENBMP_DB_NAME=${OPENBMP_DB_NAME}/" /etc/defaul
 
 # --
 # -- Reinitialize the database
-# -- 
+# --
 if [[ ! -e /data/mysql/openBMP || $REINIT_DB = 1 ]]; then
     rm -rf /data/mysql/*
 
@@ -120,6 +120,18 @@ fi
 service rsyslog start
 service mysql restart
 cron
+
+found=0
+while [[ $found -eq 0 ]]; do
+  netstat -tna | grep :3306 | grep -q LISTEN
+  if [[ $? -eq 0 ]]; then
+      found=1
+  else
+      echo "Waiting for MySQL to start..."
+      sleep 1
+  fi
+done
+
 
 sleep 1
 service tomcat7 restart

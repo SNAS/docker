@@ -88,6 +88,18 @@ service ntp start
 service mysql restart
 cron
 
+found=0
+while [[ $found -eq 0 ]]; do
+  netstat -tna | grep :3306 | grep -q LISTEN
+  if [[ $? -eq 0 ]]; then
+      found=1
+  else
+      echo "Waiting for MySQL to start..."
+      sleep 1
+  fi
+done
+
+
 # Add missing ENV items
 grep -q OPENBMP_DB_USER /etc/default/openbmpd
 if [[ $? -eq 1 ]]; then

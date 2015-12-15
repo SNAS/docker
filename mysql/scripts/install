@@ -32,7 +32,7 @@ apt-get -qq install -y wget unzip python python-mysql.connector openjdk-7-jre-he
 # --
 
 # Update the debian selection file for prompts
-#sed -i "s/MYSQL_ROOT_PASSWORD/${MYSQL_ROOT_PASSWORD}/" /tmp/debconf-set-selections 
+#sed -i "s/MYSQL_ROOT_PASSWORD/${MYSQL_ROOT_PASSWORD}/" /tmp/debconf-set-selections
 
 # Install MySQL/MariaDB Server
 apt-get -y install software-properties-common
@@ -108,16 +108,22 @@ sed -r -i "s/jdbc:mysql:[^\"]+/jdbc:mysql:\/\/localhost:3306\/openBMP\//" /var/l
 cd /tmp
 wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cron_scripts/gen-asn-stats/gen-asn-stats.py
 wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cron_scripts/db-maint/openbmp-db-maint
+wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cron_scripts/gen-whois/dbAccess.py
+wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cron_scripts/gen-whois/gen-whois-route.py
 mv openbmp-db-maint /etc/cron.weekly
-chmod 755 /etc/cron.weekly/openbmp-db-maint 
+chmod 755 /etc/cron.weekly/openbmp-db-maint
 mv gen-asn-stats.py /usr/bin/
 chmod 755 /usr/bin/gen-asn-stats.py
+mkdir /usr/local/whois
+mv dbAccess.py gen-whois-route.py /usr/local/whois/
+chmod 755 /usr/local/whois/*
 echo "*/30 *  * * *   root    /usr/bin/gen-asn-stats.py > /var/log/gen-asn-stats.log" >> /etc/crontab
+echo "2 17 * * * root /usr/local/whois/gen-whois-route.py -u openbmp -p ${OPENBMP_DB_PASSWORD} -d openBMP localhost  > /var/log/openbmp-whois-route.log" >> /etc/crontab
 
 
-# -- 
+# --
 # -- Clean up
-# -- 
+# --
 apt-get clean
 rm -rf /var/lib/apt/lists/* /var/tmp/*
 rm -f /tmp/install
