@@ -18,10 +18,21 @@ GROUP_ID=${GROUP_ID:="openbmp-mysql-consumer"}
 #
 # System info
 #
+INIT_SYS_TOTAL_MEM=$(grep MemTotal /proc/meminfo | awk '{print int($2 / 1000)}')
 if [[ ${MEM:-""} = "" ]]; then
-    SYS_TOTAL_MEM=$(grep MemTotal /proc/meminfo | awk '{print int($2 / 1000)}')
+    SYS_TOTAL_MEM=$INIT_SYS_TOTAL_MEM
 else
     SYS_TOTAL_MEM=$(($MEM * 1024))
+fi
+
+if [[ ${SYS_TOTAL_MEM} -gt ${INIT_SYS_TOTAL_MEM} ]]; then
+    echo "ERROR: System memory of $INIT_SYS_TOTAL_MEM MB is less than requested memory ($SYS_TOTAL_MEM) MB"
+    echo "   Set the -e MEM=value in GB to less than or equal to system memory or do not set at all."
+    exit 1
+
+elif [[ ${SYS_TOTAL_MEM} -lt 2000 ]]; then
+    echo "ERROR: At least 2GB of RAM is required.  Found ${SYS_TOTAL_MEM} MB. Cannot proceed."
+    exit 1
 fi
 
 SYS_NUM_CPU=$(grep processor /proc/cpuinfo | wc -l)
@@ -123,6 +134,12 @@ cron
 
 found=0
 while [[ $found -eq 0 ]]; do
+  ps -e -o comm | grep mysqld > /dev/null
+  if [[ $? -ne 0 ]]; then
+        echo "ERROR: MySQL is not running, check /var/log/syslog for details.  Cannot proceed."
+        exit 1
+  fi
+
   netstat -tna | grep :3306 | grep -q LISTEN
   if [[ $? -eq 0 ]]; then
       found=1

@@ -16,6 +16,7 @@ OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD:="openbmp"}
 OPENBMP_DB_USER=${OPENBMP_DB_USER:="openbmp"}
 OPENBMP_DB_NAME=${OPENBMP_DB_NAME:="openBMP"}
 GROUP_ID=${GROUP_ID:="openbmp-mysql-consumer"}
+ADMIN_ID=${ADMIN_ID:="collector"}
 
 
 source /etc/default/openbmpd
@@ -23,10 +24,21 @@ source /etc/default/openbmpd
 #
 # System info
 #
+INIT_SYS_TOTAL_MEM=$(grep MemTotal /proc/meminfo | awk '{print int($2 / 1000)}')
 if [[ ${MEM:-""} = "" ]]; then
-    SYS_TOTAL_MEM=$(grep MemTotal /proc/meminfo | awk '{print int($2 / 1000)}')
+    SYS_TOTAL_MEM=$INIT_SYS_TOTAL_MEM
 else
     SYS_TOTAL_MEM=$(($MEM * 1024))
+fi
+
+if [[ ${SYS_TOTAL_MEM} -gt ${INIT_SYS_TOTAL_MEM} ]]; then
+    echo "ERROR: System memory of $INIT_SYS_TOTAL_MEM MB is less than requested memory ($SYS_TOTAL_MEM) MB"
+    echo "   Set the -e MEM=value in GB to less than or equal to system memory or do not set at all."
+    exit 1
+
+elif [[ ${SYS_TOTAL_MEM} -lt 4000 ]]; then
+    echo "ERROR: At least 4GB of RAM is required.  Found ${SYS_TOTAL_MEM} MB. Cannot proceed."
+    exit 1
 fi
 
 SYS_NUM_CPU=$(grep processor /proc/cpuinfo | wc -l)
@@ -90,6 +102,12 @@ cron
 
 found=0
 while [[ $found -eq 0 ]]; do
+  ps -e -o comm | grep mysqld > /dev/null
+  if [[ $? -ne 0 ]]; then
+        echo "ERROR: MySQL is not running, check /var/log/syslog for details.  Cannot proceed."
+        exit 1
+  fi
+
   netstat -tna | grep :3306 | grep -q LISTEN
   if [[ $? -eq 0 ]]; then
       found=1
@@ -114,18 +132,27 @@ sed -r -i "s/OPENBMP_DB_USER=.*/OPENBMP_DB_USER=${OPENBMP_DB_USER}/" /etc/defaul
 sed -r -i "s/OPENBMP_DB_PASSWORD=.*/OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD}/" /etc/default/openbmpd
 sed -r -i "s/OPENBMP_DB_NAME=.*/OPENBMP_DB_NAME=${OPENBMP_DB_NAME}/" /etc/default/openbmpd
 
+
 #
-# update configs and hosts for FQDN
+# Update kafka fqdn/hostname
 #
+DOCKER_HOST_IP=$(ip route | grep default | head -1 | awk '{ print $3}')
 if [[ ${API_FQDN:-""} = "" ]]; then
-    echo "API_FQDN not set, cannot proceed."
+    echo "ERROR: API_FQDN not set using docker run -e API_FQDN=<value>, cannot proceed."
     exit 1
 else
-    # Update the hosts file
-    grep -q ${API_FQDN} /etc/hosts
-    if [[ $? -ne 0 ]]; then
-        echo "127.0.0.1               ${API_FQDN}" >> /etc/hosts
+    if [[ ${API_FQDN} == "localhost" ]]; then
+        API_FQDN="docker-localhost"
+
+    elif [[ ${API_FQDN} == "127.0.0.1" ]]; then
+        API_FQDN="docker-localhost"
+
+    elif [[ ${API_FQDN} == "::1" ]]; then
+        API_FQDN="docker-localhost"
     fi
+
+    # Update the hosts file
+    echo "$DOCKER_HOST_IP         docker-localhost" >> /etc/hosts
 
     # Update kafka config
     sed -i -r "s/^[#]*advertised.host.name=.*/advertised.host.name=${API_FQDN}/" \
@@ -179,4 +206,4 @@ fi
 # Start openbmpd and wait - openbmpd runs in foreground
 pkill openbmpd
 source /etc/default/openbmpd
-/usr/bin/openbmpd -f -l /var/log/openbmpd.log -a ${API_FQDN} -k localhost:9092 -hi 5 -p 5000 -b ${OPENBMP_BUFFER}
+/usr/bin/openbmpd -f -l /var/log/openbmpd.log -a ${ADMIN_ID} -k localhost:9092 -hi 5 -p 5000 -b ${OPENBMP_BUFFER}
