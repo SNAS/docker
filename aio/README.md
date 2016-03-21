@@ -64,6 +64,8 @@ should create a tmpfs and then map that as a volume in docker using ``-v /var/op
 You can add custom host entries so that the collector will reverse lookup IP addresses
 using a persistent hosts file.
 
+Run docker with ```-v /var/openbmp/config:/config``` to make use of the persistent config files. 
+
 
 ### 5) Run docker container
 
@@ -75,7 +77,7 @@ Below table lists the environment variables that can be used with ``docker -e <n
 
 NAME | Value | Details
 :---- | ----- |:-------
-**API\_FQDN** | hostname | **required** Fully qualified hostname for the docker host/IP of this container, will be used for API and Kafka.  You can use localhost.
+**API\_FQDN** | hostname | **required** Fully qualified hostname for the docker host/IP of this container, will be used for API and Kafka.  You can use **localhost** if there are no external consumers.
 **ADMIN_ID** | string | The collector's admin ID.  This defaults to **collector**, but can be any string to identify this collector instance.
 MEM | RAM in GB | The size of RAM allowed for container in gigabytes. (e.g. ```-e MEM=15```)
 OPENBMP_BUFFER | Size in MB | Defines the openbmpd buffer per router for BMP messages. Default is 16 MB.  
@@ -89,7 +91,8 @@ MYSQL\_OPENBMP\_PASSWORD | password | MySQL openbmp user password.  The default 
 > external/remote consumers.  You can use **localhost** if there are no remote
 > consumers.
 
-    docker run -d -e API_FQDN=<hostname or IP> --name=openbmp_aio -e MEM=15 \
+    docker run -d --name=openbmp_aio \
+         -e API_FQDN=localhost \
          -v /var/openbmp/mysql:/data/mysql \
          -p 3306:3306 -p 2181:2181 -p 9092:9092 -p 5000:5000 -p 8001:8001 \
          openbmp/aio
