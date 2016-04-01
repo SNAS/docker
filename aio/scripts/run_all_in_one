@@ -118,21 +118,6 @@ while [[ $found -eq 0 ]]; do
 done
 
 
-# Add missing ENV items
-grep -q OPENBMP_DB_USER /etc/default/openbmpd
-if [[ $? -eq 1 ]]; then
-    echo "OPENBMP_DB_USER=${OPENBMP_DB_USER}" >> /etc/default/openbmpd
-    echo "OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD}" >> /etc/default/openbmpd
-    echo "OPENBMP_DB_NAME=${OPENBMP_DB_NAME}" >> /etc/default/openbmpd
-fi
-
-# Update ENV for openbmpd
-sed -r -i "s/OPENBMP_BUFFER=.*/OPENBMP_BUFFER=${OPENBMP_BUFFER}/" /etc/default/openbmpd
-sed -r -i "s/OPENBMP_DB_USER=.*/OPENBMP_DB_USER=${OPENBMP_DB_USER}/" /etc/default/openbmpd
-sed -r -i "s/OPENBMP_DB_PASSWORD=.*/OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD}/" /etc/default/openbmpd
-sed -r -i "s/OPENBMP_DB_NAME=.*/OPENBMP_DB_NAME=${OPENBMP_DB_NAME}/" /etc/default/openbmpd
-
-
 #
 # Update kafka fqdn/hostname
 #
@@ -178,7 +163,7 @@ fi
 
 cd /tmp
 
-# configure DB_REST - Incase the password is different
+# configure DB_REST - In case the password is different
 sed -r -i "s/username=\"[^\"]+\"/username=\"${OPENBMP_DB_USER}\"/" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
 sed -r -i "s/password=\"[^\"]+\"/password=\"${OPENBMP_DB_PASSWORD}\"/" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
 sed -r -i "s/jdbc:mysql:[^\"]+/jdbc:mysql:\/\/localhost:3306\/openBMP\//" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
@@ -203,7 +188,24 @@ if [[ $(ps -ef | grep kafka  | grep -v grep | wc -l) -ne 2 ]]; then
     exit 1
 fi
 
+# Start the rpki validator
+if [[ -d /config/rpki/tal ]]; then
+    cp -f /config/rpki/tal/* /usr/local/rpki/conf/tal/
+fi
+
+/usr/local/rpki/rpki-validator.sh start
+
 # Start openbmpd and wait - openbmpd runs in foreground
 pkill openbmpd
-source /etc/default/openbmpd
-/usr/bin/openbmpd -f -l /var/log/openbmpd.log -a ${ADMIN_ID} -k localhost:9092 -hi 5 -p 5000 -b ${OPENBMP_BUFFER}
+
+# Update openbmpd config file
+OPENBMP_CFG_FILE=/usr/etc/openbmp/openbmpd.conf
+sed -r -i "s/admin_id:.*/admin_id: ${ADMIN_ID}/" /usr/etc/openbmp/openbmpd.conf
+sed -r -i "s/admin_id:.*/group_id: ${GROUP_ID}/" /usr/etc/openbmp/openbmpd.conf
+
+
+if [[ -f /config/openbmpd.conf ]]; then
+    OPENBMP_CFG_FILE=/config/openbmpd.conf
+fi
+
+/usr/bin/openbmpd -f -l /var/log/openbmpd.log -c ${OPENBMP_CFG_FILE}

@@ -5,9 +5,10 @@ All-in-one includes everything needed to run the collector and store the data in
 #### Container Includes
 * **Openbmpd** - Latest collector (listening port is TCP 5000)
 * **MariaDB 10.0** - MySQL server (listening port TCP 3306)
-* **Apache Kafka 0.8.x** - High performing message bus (listening ports are TCP 2181 and 9092)
+* **Apache Kafka 0.9.0.1** - High performing message bus (listening ports are TCP 2181 and 9092)
 * **Tomcat/DB_REST** - Latest Rest interface into MySQL/MariaDB (listening port TCP 8001)
 * **Openbmp MySQL Consumer** - Latest Consumer that puts all data into MySQL
+* **RPKI Validator 2.21** - RPKI Validator - see https://github.com/RIPE-NCC/rpki-validator
 
 
 ### Recommended Current Linux Distributions
@@ -30,13 +31,6 @@ MySQL/MariaDB uses a shared container (host) volume so that if you upgrade, rest
 
 When starting the container you will need to map a host file system to **/data/mysql** for the container.  You do this using the ```-v <host path>:/data/mysql```.  The below examples default to the host path of ```/var/openbmp/mysql```
 
-#### (Optional) MySQL Temporary Table Space
-Large queries or queries that involve sorting/counting/... will use a temporary table on disk.   It is recommended that
-you use a **tmpfs** memory mount point for this.  Docker will not allow the container to mount tmpfs without having
-CAP\_SYS\_ADMIN capability (``-privileged``).  To work around this limitation, the container will not create the tmpfs.  Instead
-the container will use ``/var/mysqltmp`` which can be a volume to the host system tmpfs mount point.   The host system 
-should create a tmpfs and then map that as a volume in docker using ``-v /var/openbmp/mysqltmp:/var/mysqltmp``
-
 #### On host create mysql shared dir
     mkdir -p /var/openbmp/mysql
     chmod 777 /var/openbmp/mysql 
@@ -45,17 +39,9 @@ should create a tmpfs and then map that as a volume in docker using ``-v /var/op
 > by looking at the file owner after starting the container. 
     
 
-#### On host create tmpfs (as root)
-
-    mkdir -p /var/openbmp/mysqltmp
-    echo "tmpfs /var/openbmp/mysqltmp tmpfs defaults,gid=nogroup,uid=nobody,size=2400M,mode=0777 0 0" >> /etc/fstab
-    mount /var/openbmp/mysqltmp
-
 ### 4) [OPTIONAL] Add persistent configs
 
 #### On host create persistent config location
-
-> ONLY USE TMPFS IF YOU HAVE ENOUGH MEMORY
 
     mkdir -p /var/openbmp/config
     chmod 777 /var/openbmp/config
@@ -65,6 +51,17 @@ You can add custom host entries so that the collector will reverse lookup IP add
 using a persistent hosts file.
 
 Run docker with ```-v /var/openbmp/config:/config``` to make use of the persistent config files. 
+
+#### config/openbmpd.conf
+You can provide a customized **openbmpd.conf**.  See [Config Example](https://github.com/OpenBMP/openbmp/blob/master/Server/openbmpd.conf)
+
+#### config/rpki/tal/*
+You can place/update the RPKI TAL's by placing them in the config/rpki/tal directory.
+
+> ##### ARIN is not included. You must add that TAL yourself.
+> To access ARIN's TAL, you will have to agree to ARIN's Relying Party Agreement. After
+> that, the TAL will be emailed to the recipient. Please visit this ARIN web page for
+> more information: http://www.arin.net/public/rpki/tal/index.xhtml
 
 
 ### 5) Run docker container
@@ -78,9 +75,8 @@ Below table lists the environment variables that can be used with ``docker -e <n
 NAME | Value | Details
 :---- | ----- |:-------
 **API\_FQDN** | hostname | **required** Fully qualified hostname for the docker host/IP of this container, will be used for API and Kafka.  You can use **localhost** if there are no external consumers.
-**ADMIN_ID** | string | The collector's admin ID.  This defaults to **collector**, but can be any string to identify this collector instance.
+**ADMIN\_ID** | string | The collector's admin ID.  This defaults to **collector**, but can be any string to identify this collector instance.
 MEM | RAM in GB | The size of RAM allowed for container in gigabytes. (e.g. ```-e MEM=15```)
-OPENBMP_BUFFER | Size in MB | Defines the openbmpd buffer per router for BMP messages. Default is 16 MB.  
 REINIT_DB | 1 | If set to 1 the DB will be reinitialized, which is needed to load the new schema sometimes.  This will wipe out the old data and start from scratch.  When this is not set, the old DB is reused.   (e.g. ```-e REINIT_DB=1```)
 MYSQL\_ROOT\_PASSWORD | password | MySQL root user password.  The default is **OpenBMP**.  The root password can be changed using [standard MySQL instructions](https://dev.mysql.com/doc/refman/5.6/en/resetting-permissions.html).  If you do change the password, you will need to run the container with this env set.
 MYSQL\_OPENBMP\_PASSWORD | password | MySQL openbmp user password.  The default is **openbmp**.  You can change the default openbmp user password using [standard mysql instructions](https://dev.mysql.com/doc/refman/5.6/en/set-password.html).  If you change the openbmp user password you MUST use this env.  

@@ -90,12 +90,12 @@ wget -O /usr/local/mysql-openbmp-current.db https://raw.githubusercontent.com/Op
 # --
 mkdir /usr/local/kafka
 cd /tmp
-wget http://supergsego.com/apache/kafka/0.8.2.2/kafka_2.10-0.8.2.2.tgz
-tar xzf kafka_2.10-0.8.2.2.tgz
-cd kafka_2.10-0.8.2.2
+wget http://apache.cs.utah.edu/kafka/0.9.0.1/kafka_2.11-0.9.0.1.tgz
+tar xzf kafka_2.11-0.9.0.1.tgz
+cd kafka_2.11-0.9.0.1
 mv * /usr/local/kafka/
 cd /usr/local/kafka/
-rm -rf /tmp/kafka_2.10-0.8.2.2*
+rm -rf /tmp/kafka_2.11-0.9.0.1*
 
 # Create the logs dir for Kafka topics
 mkdir -m 0750 /var/kafka
@@ -104,6 +104,21 @@ mkdir -m 0750 /var/kafka
 sed -i -r 's/^[#]*log.dirs=.*/log.dirs=\/var\/kafka/' config/server.properties
 sed -i -r 's/^[#]*log.retention.hours=.*/log.retention.hours=24/' config/server.properties
 sed -i -r 's/^[#]*num.partitions=.*/num.partitions=6/' config/server.properties
+
+# --
+# -- RPKI Validator
+# --
+mkdir /usr/local/rpki
+cd /tmp
+wget https://lirportal.ripe.net/certification/content/static/validator/rpki-validator-app-2.21-dist.tar.gz
+tar xzf rpki-validator-app-2.21-dist.tar.gz
+cd rpki-validator-app-2.21
+mv * /usr/local/rpki/
+cd /usr/local/rpki
+sed -i -r 's/^[#]*ui.http.port=.*/ui.http.port=8080/' conf/rpki-validator.conf
+sed -i -r 's/^[#]*validation.remove_old_objects.interval.*/validation.remove_old_objects.interval=2d/' conf/rpki-validator.conf
+sed -i -r 's/^[#]*ui.http.port=.*/ui.http.port=8080/' conf/rpki-validator.conf
+
 
 
 # --
@@ -143,16 +158,23 @@ wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cro
 wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cron_scripts/db-maint/openbmp-db-maint
 wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cron_scripts/gen-whois/dbAccess.py
 wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cron_scripts/gen-whois/gen-whois-route.py
+wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cron_scripts/rpki/rpki_validator.py
 
 mv openbmp-db-maint /etc/cron.weekly
 chmod 755 /etc/cron.weekly/openbmp-db-maint
-mv gen-asn-stats.py /usr/bin/
-chmod 755 /usr/bin/gen-asn-stats.py
+mv gen-asn-stats.py /usr/local/bin/
+chmod 755 /usr/local/bin/gen-asn-stats.py
 mkdir /usr/local/whois
 mv dbAccess.py gen-whois-route.py /usr/local/whois/
 chmod 755 /usr/local/whois/*
-echo "*/30 *  * * *   root    /usr/bin/gen-asn-stats.py > /var/log/gen-asn-stats.log" >> /etc/crontab
+
+mv rpki_validator.py /usr/local/bin/
+chmod 755 /usr/local/bin/rpki_validator.py
+
+echo "*/30 *  * * *   root    /usr/local/bin/gen-asn-stats.py > /var/log/gen-asn-stats.log" >> /etc/crontab
 echo "2 17 * * * root /usr/local/whois/gen-whois-route.py -u openbmp -p ${OPENBMP_DB_PASSWORD} -d openBMP localhost  > /var/log/openbmp-whois-route.log" >> /etc/crontab
+echo "12 1 * * * root /usr/local/rpki/rpki-validator.sh restart > /dev/null" >> /etc/crontab
+echo "1 */4   * * *   root     /usr/local/bin/rpki_validator.py  -u openbmp -p ${OPENBMP_DB_PASSWORD} -s localhost:8080 localhost > /var/log/rpki-validator.log" >> /etc/crontab
 
 
 # --
