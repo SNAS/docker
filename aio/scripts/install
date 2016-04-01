@@ -25,7 +25,7 @@ apt-get update
 sed -i 's/exit 101/exit 0/' /usr/sbin/policy-rc.d
 
 # General depend install
-apt-get -qq install -y ntp debconf-utils wget unzip python python-mysql.connector whois
+apt-get -qq install -y ntp debconf-utils wget unzip python python-mysql.connector whois rsync
 
 # --
 # -- Tomcat and API
@@ -115,6 +115,8 @@ tar xzf rpki-validator-app-2.21-dist.tar.gz
 cd rpki-validator-app-2.21
 mv * /usr/local/rpki/
 cd /usr/local/rpki
+rm -rf /tmp/rpki-validator-app-2.21*
+
 sed -i -r 's/^[#]*ui.http.port=.*/ui.http.port=8080/' conf/rpki-validator.conf
 sed -i -r 's/^[#]*validation.remove_old_objects.interval.*/validation.remove_old_objects.interval=2d/' conf/rpki-validator.conf
 sed -i -r 's/^[#]*ui.http.port=.*/ui.http.port=8080/' conf/rpki-validator.conf

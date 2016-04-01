@@ -24,6 +24,7 @@ ADD defaults/tomcat7 /tmp/
 ADD scripts/install /tmp/
 ADD scripts/run_all_in_one /usr/sbin/
 ADD files/geo_ip.db /usr/local/
+ADD files/users.db /usr/local/users.db
 COPY files/whois.db.gz /usr/local/
 
 # Proxy servers

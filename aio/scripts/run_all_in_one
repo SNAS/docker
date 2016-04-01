@@ -77,6 +77,8 @@ DB_CREATE
 
     # Import schema
     mysql -u root --password=${MYSQL_ROOT_PASSWORD} openBMP < /usr/local/mysql-openbmp-current.db
+    mysql -u root --password=${MYSQL_ROOT_PASSWORD} openBMP < /usr/local/users.db
+
 
     # Import whois data
     if [[ -f /config/mysql/whois.db ]]; then
@@ -201,7 +203,6 @@ pkill openbmpd
 # Update openbmpd config file
 OPENBMP_CFG_FILE=/usr/etc/openbmp/openbmpd.conf
 sed -r -i "s/admin_id:.*/admin_id: ${ADMIN_ID}/" /usr/etc/openbmp/openbmpd.conf
-sed -r -i "s/admin_id:.*/group_id: ${GROUP_ID}/" /usr/etc/openbmp/openbmpd.conf
 
 
 if [[ -f /config/openbmpd.conf ]]; then
