@@ -197,6 +197,7 @@ fi
 
 /usr/local/rpki/rpki-validator.sh start
 
+
 # Start openbmpd and wait - openbmpd runs in foreground
 pkill openbmpd
 

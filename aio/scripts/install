@@ -120,6 +120,7 @@ rm -rf /tmp/rpki-validator-app-2.21*
 sed -i -r 's/^[#]*ui.http.port=.*/ui.http.port=8080/' conf/rpki-validator.conf
 sed -i -r 's/^[#]*validation.remove_old_objects.interval.*/validation.remove_old_objects.interval=2d/' conf/rpki-validator.conf
 sed -i -r 's/^[#]*ui.http.port=.*/ui.http.port=8080/' conf/rpki-validator.conf
+sed -i -r 's/^[#]*jvm.memory.maximum=.*/jvm.memory.maximum=2048m/' conf/rpki-validator.conf
 
 
 
@@ -175,8 +176,8 @@ chmod 755 /usr/local/bin/rpki_validator.py
 
 echo "*/30 *  * * *   root    /usr/local/bin/gen-asn-stats.py > /var/log/gen-asn-stats.log" >> /etc/crontab
 echo "2 17 * * * root /usr/local/whois/gen-whois-route.py -u openbmp -p ${OPENBMP_DB_PASSWORD} -d openBMP localhost  > /var/log/openbmp-whois-route.log" >> /etc/crontab
-echo "12 1 * * * root /usr/local/rpki/rpki-validator.sh restart > /dev/null" >> /etc/crontab
-echo "1 */4   * * *   root     /usr/local/bin/rpki_validator.py  -u openbmp -p ${OPENBMP_DB_PASSWORD} -s localhost:8080 localhost > /var/log/rpki-validator.log" >> /etc/crontab
+echo "12 1 * * * root /usr/local/rpki/rpki-validator.sh start > /dev/null" >> /etc/crontab
+echo "1 */2   * * *   root     /usr/local/bin/rpki_validator.py  -u openbmp -p ${OPENBMP_DB_PASSWORD} -s localhost:8080 localhost > /var/log/rpki-validator.log" >> /etc/crontab
 
 
 # --
