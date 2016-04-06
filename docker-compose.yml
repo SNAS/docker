@@ -1,0 +1,38 @@
+version: '2'
+
+services:
+
+  openbmp_kafka:
+    build: ./kafka/
+    ports:
+     - "2181:2181"
+     - "9092:9092"
+    environment:
+     - KAFKA_FQDN=localhost
+
+  openbmp_mysql:
+    build: ./mysql/
+    ports:
+     - "3306:3306"
+     - "8001:8001"
+    volumes:
+     - /data/mysql
+     - /config
+    environment:
+     - REINIT_DB=1
+     - MEM=1
+     - KAFKA_FQDN=kafka
+    links:
+     - openbmp_kafka:kafka
+
+  openbmp_collector:
+    build: ./collector/
+    ports:
+     - "5000:5000"
+    volumes:
+     - /var/openbmp/config:/config
+    environment:
+     - OPENBMP_ADMIN_ID=collector1
+     - KAFKA_FQDN=kafka
+    links:
+     - openbmp_kafka:kafka
