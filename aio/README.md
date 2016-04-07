@@ -95,10 +95,19 @@ MYSQL\_OPENBMP\_PASSWORD | password | MySQL openbmp user password.  The default 
 
 > ### Allow at least a few minutes for mysql to init the DB on first start
 
+#### After Install
+Once the container is running you can run a **HTTP GET http://docker_host:8001/db_rest/v1/routers** to test that the API interface is working.
+
+> Username: **openbmp**
+> Password: **CiscoRA**
+> 
+
+The default username/password can be changed in the DB via the **users** table.  The UI can also be used to add/remove and change users.
+
+    INSERT users (username,password,type) values ('tim', PASSWORD('mypassword'), 'admin');
 
 
 ### Monitoring/Troubleshooting
-Once the container is running you can run a **HTTP GET http://docker_host:8001/db_rest/v1/routers** to test that the API interface is working. 
 
 You can use standard docker exec commands to monitor the log files.  To monitor 
 openbmp, use ```docker exec openbmp_aio tail -f /var/log/openbmpd.log```
