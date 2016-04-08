@@ -25,12 +25,18 @@ Docker host should be **Linux x86_64**.   Follow the [Docker Instructions](https
 ### 3) [OPTIONAL] Add persistent configs
 
 #### On host create persistent config location
+
     mkdir -p /var/openbmp/config
     chmod 777 /var/openbmp/config
 
 #### config/hosts
 You can add custom host entries so that the collector will reverse lookup IP addresses
 using a persistent hosts file.
+
+Run docker with ```-v /var/openbmp/config:/config``` to make use of the persistent config files.
+
+#### config/openbmpd.conf
+You can provide a customized **openbmpd.conf**.  See [Config Example](https://github.com/OpenBMP/openbmp/blob/master/Server/openbmpd.conf)
 
 ### 4) Run docker container
 
@@ -52,7 +58,6 @@ OPENBMP\_BUFFER | Size in MB | Defines the openbmpd buffer per router for BMP me
 > This can be internal DNS or manually done by updating the /etc/hosts file on each machine.
 
     docker run -d --name=openbmp_collector -e KAFKA_FQDN=localhost \
-         -e OPENBMP_ADMIN_ID=collector1 \
          -v /var/openbmp/config:/config \
          -p 5000:5000 \
          openbmp/collector

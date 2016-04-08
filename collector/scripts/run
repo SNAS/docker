@@ -9,7 +9,7 @@
 #
 # Author: Tim Evens <tim@openbmp.org>
 #
-OPENBMP_BUFFER=${OPENBMP_BUFFER:=16}
+ADMIN_ID=${ADMIN_ID:="collector"}
 
 DOCKER_HOST_IP=$(ip route | grep default | head -1 | awk '{ print $3}')
 
@@ -50,10 +50,6 @@ SYS_NUM_CPU=$(grep processor /proc/cpuinfo | wc -l)
 service rsyslog start
 cron
 
-
-# Update ENV for openbmpd
-sed -r -i "s/OPENBMP_BUFFER=.*/OPENBMP_BUFFER=${OPENBMP_BUFFER}/" /etc/default/openbmpd
-
 # Update the hosts file
 echo "$DOCKER_HOST_IP         docker-localhost" >> /etc/hosts
 
@@ -64,5 +60,14 @@ fi
 
 # Start openbmpd and wait - openbmpd runs in foreground
 pkill openbmpd
-/usr/bin/openbmpd -f -l /var/log/openbmpd.log -a ${OPENBMP_ADMIN_ID} -k $KAFKA_FQDN -hi 5 -p 5000 -b ${OPENBMP_BUFFER}
 
+# Update openbmpd config file
+OPENBMP_CFG_FILE=/usr/etc/openbmp/openbmpd.conf
+sed -r -i "s/admin_id:.*/admin_id: ${ADMIN_ID}/" /usr/etc/openbmp/openbmpd.conf
+
+
+if [[ -f /config/openbmpd.conf ]]; then
+    OPENBMP_CFG_FILE=/config/openbmpd.conf
+fi
+
+/usr/bin/openbmpd -f -l /var/log/openbmpd.log -c ${OPENBMP_CFG_FILE}
