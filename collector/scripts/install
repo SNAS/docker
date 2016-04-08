@@ -24,7 +24,7 @@ apt-get update
 sed -i 's/exit 101/exit 0/' /usr/sbin/policy-rc.d
 
 # General depend install
-apt-get -qq install -y wget unzip
+apt-get -qq install -y wget unzip  libssl1.0.0 libsasl2-2
 
 # --
 # -- OpenBMPd collector

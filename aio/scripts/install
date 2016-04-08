@@ -25,7 +25,7 @@ apt-get update
 sed -i 's/exit 101/exit 0/' /usr/sbin/policy-rc.d
 
 # General depend install
-apt-get -qq install -y ntp debconf-utils wget unzip python python-mysql.connector whois rsync
+apt-get -qq install -y ntp debconf-utils wget unzip python python-mysql.connector whois rsync  libssl1.0.0 libsasl2-2
 
 # --
 # -- Tomcat and API
