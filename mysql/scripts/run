@@ -102,6 +102,7 @@ DB_CREATE
 
     # Import schema
     mysql -u root --password=${MYSQL_ROOT_PASSWORD} openBMP < /usr/local/mysql-openbmp-current.db
+    mysql -u root --password=${MYSQL_ROOT_PASSWORD} openBMP < /usr/local/users.db
 
     # Import whois data
     if [[ -f /config/mysql/whois.db ]]; then

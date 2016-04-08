@@ -72,6 +72,7 @@ Install OpenBMP using Docker
 Each docker file contains a readme file, see below:
 
 * [All-In-One](aio/README.md)
+* [UI](ui/README.md)
 * [Collector](collector/README.md)
 * [Kafka](kafka/README.md)
 * [MySQL](mysql/README.md)

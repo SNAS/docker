@@ -1,0 +1,57 @@
+#!/bin/bash
+# Copyright (c) 2015-2016 Cisco Systems, Inc. and others.  All rights reserved.
+#
+# UI and API run script
+#
+OPENBMP_API_HOST=${OPENBMP_API_HOST:="localhost"}
+OPENBMP_API_PORT=${OPENBMP_API_PORT:=8001}
+
+JAVA_OPTS=${JAVA_OPTS:="-Djava.awt.headless=true -Xmx768m -XX:+UseConcMarkSweepGC"}
+
+#
+# Start common services
+#
+
+# Update the etc hosts file
+if [[ -f /config/hosts ]]; then
+    cat /config/hosts >> /etc/hosts
+fi
+
+#
+# Update the hostname if localhost to use the docker localhost/gateway address
+#
+DOCKER_HOST_IP=$(ip route | grep default | head -1 | awk '{ print $3}')
+
+if [[ ${OPENBMP_API_HOST} == "localhost" ]]; then
+    OPENBMP_API_HOST="docker-localhost"
+
+elif [[ ${OPENBMP_API_HOST} == "127.0.0.1" ]]; then
+    OPENBMP_API_HOST="docker-localhost"
+
+elif [[ ${OPENBMP_API_HOST} == "::1" ]]; then
+    OPENBMP_API_HOST="docker-localhost"
+fi
+
+# Update the hosts file
+echo "$DOCKER_HOST_IP         docker-localhost" >> /etc/hosts
+
+#
+# Configure bmpUI API url
+#     Updates "http://"+d+":"+e+"/db_rest/v1/"
+if [[ ${OPENBMP_API_HOST} == "docker-localhost" ]]; then
+    sed -i -r "s/http:\/\/([^:]+):.*\/db_rest\/v1\//http:\/\/\1:${OPENBMP_API_PORT}\/db_rest\/v1\//" /usr/local/tomcat/webapps/ROOT/scripts/scripts.*.js
+else
+    sed -i -r "s/http:\/\/.*\/db_rest\/v1\//http:\/\/${OPENBMP_API_HOST}:${OPENBMP_API_PORT}\/db_rest\/v1\//" /usr/local/tomcat/webapps/ROOT/scripts/scripts.*.js
+fi
+
+
+#
+# Start tomcat
+#
+export JAVA_OPTS
+cd /usr/local/tomcat
+./bin/startup.sh
+
+
+# for docker, hang around
+tail -f /usr/local/tomcat/logs/catalina.out

@@ -1,0 +1,45 @@
+#!/bin/bash
+# Copyright (c) 2015-2016 Cisco Systems, Inc. and others.  All rights reserved.
+#
+# OpenBMP/UI Install script
+#
+
+#
+# Defaults
+#
+
+#
+# Install depends
+#
+apk add  --update iproute2 wget unzip  ca-certificates openjdk8-jre-base
+rm -rf /var/cache/apk/*
+
+# --
+# -- Tomcat
+# --
+wget http://apache.cs.utah.edu/tomcat/tomcat-9/v9.0.0.M4/bin/apache-tomcat-9.0.0.M4.tar.gz
+tar xzf apache-tomcat-9.0.0.M4.tar.gz
+rm apache-tomcat-9.0.0.M4.tar.gz
+
+mkdir -p /usr/local/tomcat
+cd apache-tomcat-9.0.0.M4
+mv * /usr/local/tomcat/
+cd ..
+rm -rf apache-tomcat-9.0.0.M4
+
+
+# Update the tomcat files
+rm -rf /usr/local/tomcat/webapps/*
+mkdir /usr/local/tomcat/webapps/ROOT
+sed -i 's/8080/8000/g' /usr/local/tomcat/conf/server.xml
+
+# Extract BMP-UI
+cd /usr/local/tomcat/webapps/ROOT
+unzip /tmp/bmpUI.war
+rm -f /tmp/bmpUI.war
+
+# --
+# -- Clean up
+# --
+rm -f /tmp/debconf-set-selections
+rm -f /tmp/install
