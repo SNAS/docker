@@ -174,7 +174,7 @@ chmod 755 /usr/local/whois/*
 mv rpki_validator.py /usr/local/bin/
 chmod 755 /usr/local/bin/rpki_validator.py
 
-echo "*/30 *  * * *   root    /usr/local/bin/gen-asn-stats.py > /var/log/gen-asn-stats.log" >> /etc/crontab
+echo "*/30 *  * * *   root   OPENBMP_DB_USER=openbmp OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD} OPENBMP_DB_NAME=openBMP /usr/bin/gen-asn-stats.py > /var/log/gen-asn-stats.log" >> /etc/crontab
 echo "2 17 * * * root /usr/local/whois/gen-whois-route.py -u openbmp -p ${OPENBMP_DB_PASSWORD} -d openBMP localhost  > /var/log/openbmp-whois-route.log" >> /etc/crontab
 echo "12 1 * * * root /usr/local/rpki/rpki-validator.sh start > /dev/null" >> /etc/crontab
 echo "1 */2   * * *   root     /usr/local/bin/rpki_validator.py  -u openbmp -p ${OPENBMP_DB_PASSWORD} -s localhost:8080 localhost > /var/log/rpki-validator.log" >> /etc/crontab
