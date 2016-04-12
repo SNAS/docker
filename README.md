@@ -77,4 +77,8 @@ Each docker file contains a readme file, see below:
 * [Kafka](kafka/README.md)
 * [MySQL](mysql/README.md)
 
+To build Collector, Kafka & Mysql locally and run using docker-compose try:
 
+```
+docker-compose up
+```

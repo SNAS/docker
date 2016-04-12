@@ -20,6 +20,9 @@ export DEBIAN_FRONTEND=noninteractive
 # Install base packages
 apt-get update
 
+# Install libsasl2-2 to fix "/usr/bin/openbmpd: error while loading shared libraries: libsasl2.so.2: cannot open shared object file: No such file or directory"
+apt-get install -y libsasl2-2
+
 # Fix ubuntu docker install
 sed -i 's/exit 101/exit 0/' /usr/sbin/policy-rc.d
 

@@ -30,8 +30,8 @@ if [[ ${SYS_TOTAL_MEM} -gt ${INIT_SYS_TOTAL_MEM} ]]; then
     echo "   Set the -e MEM=value in GB to less than or equal to system memory or do not set at all."
     exit 1
 
-elif [[ ${SYS_TOTAL_MEM} -lt 2000 ]]; then
-    echo "ERROR: At least 2GB of RAM is required.  Found ${SYS_TOTAL_MEM} MB. Cannot proceed."
+elif [[ ${SYS_TOTAL_MEM} -lt 1000 ]]; then
+    echo "ERROR: At least 1GB of RAM is required.  Found ${SYS_TOTAL_MEM} MB. Cannot proceed."
     exit 1
 fi
 
