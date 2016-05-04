@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh -x
 # All-in-One run script
 #
 #  Copyright (c) 2013-2015 Cisco Systems, Inc. and others.  All rights reserved.
@@ -65,6 +65,10 @@ sed -r -i "s/MEM_75_PERCENT_BY_ONE\$/$((${SYS_TOTAL_MEM} * 70 / 100 / 1000))/g" 
 sed -r -i "s/IO_THREADS\$/$((${SYS_NUM_CPU} * 3))/g" /etc/mysql/my.cnf
 
 # Update the source file that the cron script uses
+
+mkdir -p /etc/default
+touch /etc/default/openbmpd
+
 grep -q OPENBMP_DB_USER /etc/default/openbmpd
 if [[ $? -eq 1 ]]; then
     echo "OPENBMP_DB_USER=${OPENBMP_DB_USER}" >> /etc/default/openbmpd
@@ -84,8 +88,10 @@ if [[ ! -e /data/mysql/openBMP || $REINIT_DB = 1 ]]; then
     rm -rf /data/mysql/*
 
     # Reinitialize the database
+    mkdir -p /etc/mysql/conf.d
     mysql_install_db --user=mysql --basedir /usr --explicit_defaults_for_timestamp --datadir=/data/mysql
-    service mysql start
+    mysqld_safe start
+
     mysqladmin -u root password "${MYSQL_ROOT_PASSWORD}"
     mysqladmin -u root -h $(uname -n) password "${MYSQL_ROOT_PASSWORD}"
 
@@ -129,9 +135,10 @@ if [[ -f /config/hosts ]]; then
 fi
 
 # Start services
-service rsyslog start
-service mysql restart
-cron
+rsyslogd
+mysqladmin shutdown
+mysqld_safe start
+crond
 
 found=0
 while [[ $found -eq 0 ]]; do
@@ -152,7 +159,7 @@ done
 
 
 sleep 1
-service tomcat7 restart
+/var/lib/tomcat7/bin/catalina.sh start
 
 
 # Start the MySQL consumer

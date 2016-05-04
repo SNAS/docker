@@ -11,12 +11,13 @@
 # BUILD: docker build -t openbmp/mysql .
 
 # Pull base image.
-FROM ubuntu:trusty
+FROM alpine:3.3
 
 # Proxy/if behind firewall
 #   Update your /etc/sysconfig/docker or /etc/default/docker file by adding proxy envs there using export <var>=<val>
 
 # Add files.
+COPY files/build-jenkins.openbmp.org.pem /etc/ssl/certs/build-jenkins.openbmp.org.pem
 ADD files/my.cnf /etc/mysql/my.cnf.tmpl
 ADD files/tomcat7 /tmp/
 ADD files/geo_ip.db /usr/local/
@@ -29,6 +30,8 @@ ADD scripts/run /usr/sbin/
 #ENV http_proxy http://proxy:80
 #ENV https_proxy http://proxy:80
 #ENV no_proxy "domain.com"
+
+RUN apk add --update bash && rm -rf /var/cache/apk/*
 
 # Run Install script
 RUN /tmp/install
