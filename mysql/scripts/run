@@ -1,7 +1,7 @@
-#!/bin/sh -x
+#!/bin/sh
 # All-in-One run script
 #
-#  Copyright (c) 2013-2015 Cisco Systems, Inc. and others.  All rights reserved.
+#  Copyright (c) 2013-2016 Cisco Systems, Inc. and others.  All rights reserved.
 #
 #  This program and the accompanying materials are made available under the
 #  terms of the Eclipse Public License v1.0 which accompanies this distribution,
@@ -81,16 +81,40 @@ sed -r -i "s/OPENBMP_DB_USER=.*/OPENBMP_DB_USER=${OPENBMP_DB_USER}/" /etc/defaul
 sed -r -i "s/OPENBMP_DB_PASSWORD=.*/OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD}/" /etc/default/openbmpd
 sed -r -i "s/OPENBMP_DB_NAME=.*/OPENBMP_DB_NAME=${OPENBMP_DB_NAME}/" /etc/default/openbmpd
 
+
 # --
 # -- Reinitialize the database
 # --
+startMysql() {
+    mysqld_safe &
+
+    sleep 1;
+
+    found=0
+    while [[ $found -eq 0 ]]; do
+        ps -e -o comm | grep mysqld > /dev/null
+        if [[ $? -ne 0 ]]; then
+              echo "ERROR: MySQL is not running, check /var/log/syslog for details.  Cannot proceed."
+              exit 1
+        fi
+
+        netstat -tna | grep :3306 | grep -q LISTEN
+        if [[ $? -eq 0 ]]; then
+            found=1
+        else
+            echo "Waiting for MySQL to start..."
+            sleep 1
+        fi
+    done
+}
+
 if [[ ! -e /data/mysql/openBMP || $REINIT_DB = 1 ]]; then
     rm -rf /data/mysql/*
 
     # Reinitialize the database
     mkdir -p /etc/mysql/conf.d
     mysql_install_db --user=mysql --basedir /usr --explicit_defaults_for_timestamp --datadir=/data/mysql
-    mysqld_safe start
+    startMysql
 
     mysqladmin -u root password "${MYSQL_ROOT_PASSWORD}"
     mysqladmin -u root -h $(uname -n) password "${MYSQL_ROOT_PASSWORD}"
@@ -137,26 +161,8 @@ fi
 # Start services
 rsyslogd
 mysqladmin shutdown
-mysqld_safe start
+startMysql
 crond
-
-found=0
-while [[ $found -eq 0 ]]; do
-  ps -e -o comm | grep mysqld > /dev/null
-  if [[ $? -ne 0 ]]; then
-        echo "ERROR: MySQL is not running, check /var/log/syslog for details.  Cannot proceed."
-        exit 1
-  fi
-
-  netstat -tna | grep :3306 | grep -q LISTEN
-  if [[ $? -eq 0 ]]; then
-      found=1
-  else
-      echo "Waiting for MySQL to start..."
-      sleep 1
-  fi
-done
-
 
 sleep 1
 /var/lib/tomcat7/bin/catalina.sh start

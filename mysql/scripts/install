@@ -24,6 +24,9 @@ update-ca-certificates
 
 apk add --update wget unzip python openjdk8-jre-base rsyslog
 
+apk add --update py-pip
+pip install http://pkgs.fedoraproject.org/repo/pkgs/mysql-connector-python/mysql-connector-python-0.3.2-devel.tar.gz/2ffdfa21c0a870cc7080f9f9a5ee3d87/mysql-connector-python-0.3.2-devel.tar.gz
+
 # --
 # -- MySQL/MariaDB server
 # --
