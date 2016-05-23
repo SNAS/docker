@@ -112,12 +112,12 @@ wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cro
 wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cron_scripts/gen-whois/gen-whois-route.py
 mv openbmp-db-maint /etc/cron.weekly
 chmod 755 /etc/cron.weekly/openbmp-db-maint
-mv gen-asn-stats.py /usr/bin/
-chmod 755 /usr/bin/gen-asn-stats.py
+mv gen-asn-stats.py /usr/local/bin/
+chmod 755 /usr/local/bin/gen-asn-stats.py
 mkdir /usr/local/whois
 mv dbAccess.py gen-whois-route.py /usr/local/whois/
 chmod 755 /usr/local/whois/*
-echo "*/30 *  * * *   root   OPENBMP_DB_USER=openbmp OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD} OPENBMP_DB_NAME=openBMP /usr/bin/gen-asn-stats.py > /var/log/gen-asn-stats.log" >> /etc/crontab
+#echo "*/30 *  * * *   root   OPENBMP_DB_USER=openbmp OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD} OPENBMP_DB_NAME=openBMP /usr/local/bin/gen-asn-stats.py > /var/log/gen-asn-stats.log" >> /etc/crontab
 echo "2 17 * * * root /usr/local/whois/gen-whois-route.py -u openbmp -p ${OPENBMP_DB_PASSWORD} -d openBMP localhost  > /var/log/openbmp-whois-route.log" >> /etc/crontab
 
 

@@ -155,7 +155,7 @@ fi
 cd /usr/local/kafka
 bin/zookeeper-server-start.sh config/zookeeper.properties > /var/log/zookeeper.log &
 sleep 8
-bin/kafka-server-start.sh config/server.properties > /var/log/kafka.log &
+JMX_PORT=9999 bin/kafka-server-start.sh config/server.properties > /var/log/kafka.log &
 
 if [[ $(ps -ef | grep kafka  | grep -v grep | wc -l) -ne 2 ]]; then
     echo "FAILED to start Kafka or Zookeeper, cannot proceed"
@@ -186,7 +186,6 @@ java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExpl
 
 if [[ $(ps -ef | grep kafka  | grep -v grep | wc -l) -ne 2 ]]; then
     echo "FAILED to start Kafka or Zookeeper, cannot proceed"
-    echo "FAILED to start Kafka or Zookeeper, cannot proceed" > /var/log/openbmpd.log
     exit 1
 fi
 

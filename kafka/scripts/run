@@ -58,4 +58,4 @@ fi
 cd /usr/local/kafka
 bin/zookeeper-server-start.sh config/zookeeper.properties > /var/log/zookeeper.log &
 sleep 8
-bin/kafka-server-start.sh config/server.properties > /var/log/kafka.log
+JMX_PORT=9999 bin/kafka-server-start.sh config/server.properties > /var/log/kafka.log

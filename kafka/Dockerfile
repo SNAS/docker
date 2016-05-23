@@ -43,3 +43,4 @@ EXPOSE 2181
 
 # Kafka
 EXPOSE 9092         
+EXPOSE 9999
