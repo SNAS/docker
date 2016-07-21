@@ -82,7 +82,7 @@ fi
 mv -f /etc/mysql/debian.cnf /etc/mysql/debian.cnf.bk
 ln -s /etc/mysql/my.cnf /etc/mysql/debian.cnf
 mv -f /etc/mysql/debian-start /etc/mysql/debian-start.orig
-cat > /etc/mysql/debian-start3 <<END
+cat > /etc/mysql/debian-start <<END
 #!/bin/bash
 
 exit 0;

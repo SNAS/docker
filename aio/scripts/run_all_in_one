@@ -184,7 +184,7 @@ if [[ $(ps -ef | grep kafka  | grep -v grep | wc -l) -ne 2 ]]; then
 fi
 
 # Start the rpki validator
-if [[ ${DISABLE_RPKI:-""} != "" ]]; then
+if [[ ${DISABLE_RPKI:-""} = "" ]]; then
     if [[ -d /config/rpki/tal ]]; then
         cp -f /config/rpki/tal/* /usr/local/rpki/conf/tal/
     fi
