@@ -81,6 +81,13 @@ fi
 
 mv -f /etc/mysql/debian.cnf /etc/mysql/debian.cnf.bk
 ln -s /etc/mysql/my.cnf /etc/mysql/debian.cnf
+mv -f /etc/mysql/debian-start /etc/mysql/debian-start.orig
+cat > /etc/mysql/debian-start3 <<END
+#!/bin/bash
+
+exit 0;
+END
+chmod 755 /etc/mysql/debian-start
 
 # Download the current OpenBMP schema
 wget -O /usr/local/mysql-openbmp-current.db https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/database/mysql-openbmp-current.db
@@ -110,12 +117,12 @@ sed -i -r 's/^[#]*num.partitions=.*/num.partitions=6/' config/server.properties
 # --
 mkdir /usr/local/rpki
 cd /tmp
-wget https://lirportal.ripe.net/certification/content/static/validator/rpki-validator-app-2.21-dist.tar.gz
-tar xzf rpki-validator-app-2.21-dist.tar.gz
-cd rpki-validator-app-2.21
+wget https://lirportal.ripe.net/certification/content/static/validator/rpki-validator-app-2.22-dist.tar.gz
+tar xzf rpki-validator-app-2.22-dist.tar.gz
+cd rpki-validator-app-2.22
 mv * /usr/local/rpki/
 cd /usr/local/rpki
-rm -rf /tmp/rpki-validator-app-2.21*
+rm -rf /tmp/rpki-validator-app-2.22*
 
 sed -i -r 's/^[#]*ui.http.port=.*/ui.http.port=8080/' conf/rpki-validator.conf
 sed -i -r 's/^[#]*validation.remove_old_objects.interval.*/validation.remove_old_objects.interval=2d/' conf/rpki-validator.conf

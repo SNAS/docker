@@ -8,7 +8,7 @@ All-in-one includes everything needed to run the collector and store the data in
 * **Apache Kafka 0.9.0.1** - High performing message bus (listening ports are TCP 2181 and 9092)
 * **Tomcat/DB_REST** - Latest Rest interface into MySQL/MariaDB (listening port TCP 8001)
 * **Openbmp MySQL Consumer** - Latest Consumer that puts all data into MySQL
-* **RPKI Validator 2.21** - RPKI Validator - see https://github.com/RIPE-NCC/rpki-validator
+* **RPKI Validator 2.22** - RPKI Validator - see https://github.com/RIPE-NCC/rpki-validator
 
 
 ### Recommended Current Linux Distributions
@@ -77,6 +77,7 @@ NAME | Value | Details
 **API\_FQDN** | hostname | **required** Fully qualified hostname for the docker host/IP of this container, will be used for API and Kafka.  You can use **localhost** if there are no external consumers.
 **ADMIN\_ID** | string | The collector's admin ID.  This defaults to **collector**, but can be any string to identify this collector instance.
 MEM | RAM in GB | The size of RAM allowed for container in gigabytes. (e.g. ```-e MEM=15```)
+DISABLE_RPKI | 1 | Indicates if RPKI should be disabled.
 REINIT_DB | 1 | If set to 1 the DB will be reinitialized, which is needed to load the new schema sometimes.  This will wipe out the old data and start from scratch.  When this is not set, the old DB is reused.   (e.g. ```-e REINIT_DB=1```)
 MYSQL\_ROOT\_PASSWORD | password | MySQL root user password.  The default is **OpenBMP**.  The root password can be changed using [standard MySQL instructions](https://dev.mysql.com/doc/refman/5.6/en/resetting-permissions.html).  If you do change the password, you will need to run the container with this env set.
 MYSQL\_OPENBMP\_PASSWORD | password | MySQL openbmp user password.  The default is **openbmp**.  You can change the default openbmp user password using [standard mysql instructions](https://dev.mysql.com/doc/refman/5.6/en/set-password.html).  If you change the openbmp user password you MUST use this env.  
