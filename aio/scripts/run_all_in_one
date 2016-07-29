@@ -20,6 +20,8 @@ ADMIN_ID=${ADMIN_ID:="collector"}
 
 source /etc/default/openbmpd
 
+ulimit -c unlimited
+
 #
 # System info
 #
@@ -212,4 +214,5 @@ if [[ -f /config/openbmpd.conf ]]; then
     OPENBMP_CFG_FILE=/config/openbmpd.conf
 fi
 
+cd /var/log
 /usr/bin/openbmpd -f -l /var/log/openbmpd.log -c ${OPENBMP_CFG_FILE}
