@@ -120,6 +120,10 @@ while [[ $found -eq 0 ]]; do
   fi
 done
 
+# Update the etc hosts file
+if [[ -f /config/hosts ]]; then
+    cat /config/hosts >> /etc/hosts
+fi
 
 #
 # Update kafka fqdn/hostname
@@ -142,10 +146,7 @@ fi
 sed -i -r "s/^[#]*advertised.host.name=.*/advertised.host.name=${API_FQDN}/" \
         /usr/local/kafka/config/server.properties
 
-# Update the etc hosts file
-if [[ -f /config/hosts ]]; then
-    cat /config/hosts >> /etc/hosts
-fi
+
 
 # Start Kafka
 cd /usr/local/kafka
