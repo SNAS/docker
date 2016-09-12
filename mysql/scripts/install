@@ -87,6 +87,11 @@ sed -i 's/8080/8001/g' /var/lib/tomcat7/conf/server.xml
 # Extract and install DB rest
 wget https://build-jenkins.openbmp.org:8443/job/openbmp-db_rest/lastSuccessfulBuild/artifact/*zip*/archive.zip
 
+if [[ "$?" != 0 ]]; then
+    echo "Error downloading file";
+    exit 1;
+fi
+
 unzip archive.zip
 rm -f archive.zip
 mv archive/target/db_rest.war /tmp/
