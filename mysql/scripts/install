@@ -1,7 +1,7 @@
 #!/bin/bash
 # MySQL install script
 #
-#  Copyright (c) 2013-2015 Cisco Systems, Inc. and others.  All rights reserved.
+#  Copyright (c) 2013-2016 Cisco Systems, Inc. and others.  All rights reserved.
 #
 #  This program and the accompanying materials are made available under the
 #  terms of the Eclipse Public License v1.0 which accompanies this distribution,
@@ -18,28 +18,21 @@ OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD:="openbmp"}
 # Disable interactive
 export DEBIAN_FRONTEND=noninteractive
 
-# Install base packages
-apt-get update
-
-# Fix ubuntu docker install
-sed -i 's/exit 101/exit 0/' /usr/sbin/policy-rc.d
-
 # General depend install
-apt-get -qq install -y wget unzip python python-mysql.connector openjdk-7-jre-headless
+apk add -U ca-certificates
+update-ca-certificates
+
+apk add --update wget unzip python openjdk8-jre-base rsyslog
+
+apk add --update py-pip
+pip install http://pkgs.fedoraproject.org/repo/pkgs/mysql-connector-python/mysql-connector-python-0.3.2-devel.tar.gz/2ffdfa21c0a870cc7080f9f9a5ee3d87/mysql-connector-python-0.3.2-devel.tar.gz
 
 # --
 # -- MySQL/MariaDB server
 # --
 
-# Update the debian selection file for prompts
-#sed -i "s/MYSQL_ROOT_PASSWORD/${MYSQL_ROOT_PASSWORD}/" /tmp/debconf-set-selections
-
 # Install MySQL/MariaDB Server
-apt-get -y install software-properties-common
-apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db
-add-apt-repository 'deb http://sfo1.mirrors.digitalocean.com/mariadb/repo/10.0/ubuntu trusty main'
-apt-get update
-apt-get -y install mariadb-server
+apk -U upgrade && apk --update add mariadb mariadb-client
 
 # Create the tmpfs for mysql
 if [[ ! -e /var/mysqltmp ]]; then
@@ -47,7 +40,6 @@ if [[ ! -e /var/mysqltmp ]]; then
     chown mysql:mysql /var/mysqltmp
 fi
 
-mv -f /etc/mysql/debian.cnf /etc/mysql/debian.cnf.bk
 ln -s /etc/mysql/my.cnf /etc/mysql/debian.cnf
 
 # Extract the whois.db.gz file
@@ -61,8 +53,12 @@ wget -O /usr/local/mysql-openbmp-current.db https://raw.githubusercontent.com/Op
 # -- MySQL consumer
 # --
 cd /tmp
-wget --no-check-certificate \
-         https://build-jenkins.openbmp.org:8443/job/openbmp-mysql-consumer/lastSuccessfulBuild/artifact/*zip*/archive.zip
+wget https://build-jenkins.openbmp.org:8443/job/openbmp-mysql-consumer/lastSuccessfulBuild/artifact/*zip*/archive.zip
+
+if [[ "$?" != 0 ]]; then
+    echo "Error downloading file";
+    exit 1;
+fi
 
 unzip archive.zip
 rm -f archive.zip
@@ -73,7 +69,15 @@ rm -f archive.zip
 # --
 # -- Tomcat and API
 # --
-apt-get -qq install -y openjdk-7-jre-headless tomcat7
+export TOMCAT_VERSION=7.0.67
+
+# Install Tomcat
+wget "https://archive.apache.org/dist/tomcat/tomcat-7/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz"
+gunzip apache-tomcat-${TOMCAT_VERSION}.tar.gz
+tar -xf apache-tomcat-${TOMCAT_VERSION}.tar -C /usr
+rm apache-tomcat-${TOMCAT_VERSION}.tar
+ln -s /usr/apache-tomcat-${TOMCAT_VERSION} /var/lib/tomcat7
+rm -rf /usr/tomcat/webapps/examples /usr/tomcat/webapps/docs
 
 # Update the tomcat files
 mv /tmp/tomcat7 /etc/default/
@@ -81,8 +85,12 @@ rm -rf /var/lib/tomcat7/webapps/ROOT/*
 sed -i 's/8080/8001/g' /var/lib/tomcat7/conf/server.xml
 
 # Extract and install DB rest
-wget --no-check-certificate  \
-         https://build-jenkins.openbmp.org:8443/job/openbmp-db_rest/lastSuccessfulBuild/artifact/*zip*/archive.zip
+wget https://build-jenkins.openbmp.org:8443/job/openbmp-db_rest/lastSuccessfulBuild/artifact/*zip*/archive.zip
+
+if [[ "$?" != 0 ]]; then
+    echo "Error downloading file";
+    exit 1;
+fi
 
 unzip archive.zip
 rm -f archive.zip
@@ -110,8 +118,8 @@ wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cro
 wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cron_scripts/db-maint/openbmp-db-maint
 wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cron_scripts/gen-whois/dbAccess.py
 wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cron_scripts/gen-whois/gen-whois-route.py
-mv openbmp-db-maint /etc/cron.weekly
-chmod 755 /etc/cron.weekly/openbmp-db-maint
+mv openbmp-db-maint /etc/periodic/weekly/
+chmod 755 /etc/periodic/weekly/openbmp-db-maint
 mv gen-asn-stats.py /usr/local/bin/
 chmod 755 /usr/local/bin/gen-asn-stats.py
 mkdir /usr/local/whois
@@ -124,6 +132,6 @@ echo "2 17 * * * root /usr/local/whois/gen-whois-route.py -u openbmp -p ${OPENBM
 # --
 # -- Clean up
 # --
-apt-get clean
-rm -rf /var/lib/apt/lists/* /var/tmp/*
+rm -rf /tmp/src && \
+rm -rf /var/cache/apk/*
 rm -f /tmp/install
