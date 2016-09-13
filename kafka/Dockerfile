@@ -10,10 +10,12 @@
 #
 
 # Pull base image.
-FROM ubuntu:trusty
+FROM alpine:3.3
 
 # Proxy/if behind firewall
 #   Update your /etc/sysconfig/docker or /etc/default/docker file by adding proxy envs there using export <var>=<val>
+
+RUN apk add --update bash && rm -rf /var/cache/apk/*
 
 # Add files.
 ADD scripts/install /tmp/
