@@ -79,7 +79,7 @@ Each docker file contains a readme file, see below:
 
 Install OpenBMP using docker-compose
 ----------------------------
-As alternative to [All In One](aio/README.md) docker image Collector, Kafka and Mysql can be started up using [docker-compose](https://docs.docker.com/compose/install/)
+As alternative to [All In One](aio/README.md), docker image Collector, Kafka and Mysql can be started up using [docker-compose](https://docs.docker.com/compose/install/)
 
 ```
 docker-compose up
