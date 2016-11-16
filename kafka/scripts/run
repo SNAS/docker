@@ -41,6 +41,8 @@ else
     # Update kafka config
     sed -i -r "s/^[#]*advertised.host.name=.*/advertised.host.name=${KAFKA_FQDN}/" \
             /usr/local/kafka/config/server.properties
+    sed -i -r "s/^[#]*advertised.listeners=(.*):\/\/.*/advertised.listeners=\1:\/\/${API_FQDN}:9092/" \
+        /usr/local/kafka/config/server.properties
 fi
 
 # Start Kafka

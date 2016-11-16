@@ -117,9 +117,9 @@ sed -i -r 's/^[#]*num.partitions=.*/num.partitions=6/' config/server.properties
 # --
 mkdir /usr/local/rpki
 cd /tmp
-wget https://lirportal.ripe.net/certification/content/static/validator/rpki-validator-app-2.23-dist.tar.gz
-tar xzf rpki-validator-app-2.23-dist.tar.gz
-cd rpki-validator-app-2.23
+wget https://lirportal.ripe.net/certification/content/static/validator/rpki-validator-app-2.22-dist.tar.gz
+tar xzf rpki-validator-app-2.22-dist.tar.gz
+cd rpki-validator-app-2.22
 mv * /usr/local/rpki/
 cd /usr/local/rpki
 rm -rf /tmp/rpki-validator-app-2.22*
