@@ -31,24 +31,13 @@ cron
 #
 # Update kafka fqdn/hostname
 #
-DOCKER_HOST_IP=$(ip route | grep default | head -1 | awk '{ print $3}')
-if [[ ${KAFKA_FQDN:-""} = "" ]]; then
-    echo "ERROR: KAFKA_FQDN not set using docker run -e KAFKA_FQDN=<value>, cannot proceed."
-    exit 1
+if [[ ${API_FQDN:-""} = "" ]]; then
+    API_FQDN=localhost
+
+elif [[ ${API_FQDN} == "::1" ]]; then
+    API_FQDN="localhost"
+
 else
-    if [[ ${KAFKA_FQDN} == "localhost" ]]; then
-        KAFKA_FQDN="docker-localhost"
-
-    elif [[ ${KAFKA_FQDN} == "127.0.0.1" ]]; then
-        KAFKA_FQDN="docker-localhost"
-
-    elif [[ ${KAFKA_FQDN} == "::1" ]]; then
-        KAFKA_FQDN="docker-localhost"
-    fi
-
-    # Update the hosts file
-    echo "$DOCKER_HOST_IP         docker-localhost" >> /etc/hosts
-
     # Update kafka config
     sed -i -r "s/^[#]*advertised.host.name=.*/advertised.host.name=${KAFKA_FQDN}/" \
             /usr/local/kafka/config/server.properties

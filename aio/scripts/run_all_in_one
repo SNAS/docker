@@ -1,7 +1,7 @@
 #!/bin/bash
 # All-in-One run script
 #
-#  Copyright (c) 2013-2015 Cisco Systems, Inc. and others.  All rights reserved.
+#  Copyright (c) 2013-2016 Cisco Systems, Inc. and others.  All rights reserved.
 #
 #  This program and the accompanying materials are made available under the
 #  terms of the Eclipse Public License v1.0 which accompanies this distribution,
@@ -60,7 +60,7 @@ if [[ ! -e /data/mysql/openBMP || $REINIT_DB = 1 ]]; then
     rm -rf /data/mysql/*
 
     # Reinitialize the database
-    mysql_install_db --user=mysql --basedir /usr --explicit_defaults_for_timestamp --datadir=/data/mysql
+    mysql_install_db --user=mysql --basedir /usr --explicit_defaults_for_timestamp --datadir=/data/mysql > /dev/null
     service mysql start
     mysqladmin -u root password "${MYSQL_ROOT_PASSWORD}"
     mysqladmin -u root -h $(uname -n) password "${MYSQL_ROOT_PASSWORD}"
@@ -172,13 +172,13 @@ service tomcat7 restart
 # Start the MySQL consumer
 java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
         -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost  -g ${GROUP_ID} \
-        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -zk localhost > /var/log/mysql-consumer1.log &
+        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -b localhost:9092 > /var/log/mysql-consumer1.log &
 java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
         -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost  -g ${GROUP_ID} \
-        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -zk localhost > /var/log/mysql-consumer2.log &
+        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -b localhost:9092 > /var/log/mysql-consumer2.log &
 java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
         -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost  -g ${GROUP_ID} \
-        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -zk localhost > /var/log/mysql-consumer3.log &
+        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -b localhost:9092 > /var/log/mysql-consumer3.log &
 
 
 if [[ $(ps -ef | grep kafka  | grep -v grep | wc -l) -ne 2 ]]; then
