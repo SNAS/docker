@@ -158,12 +158,12 @@ service tomcat7 restart
 # Start the MySQL consumer
 java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
         -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost -g ${GROUP_ID} \
-        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -zk ${KAFKA_FQDN} > /var/log/mysql-consumer1.log &
+        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -b ${KAFKA_FQDN}:9092 > /var/log/mysql-consumer1.log &
 java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
         -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost -g ${GROUP_ID} \
-        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -zk ${KAFKA_FQDN} > /var/log/mysql-consumer2.log &
+        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -b ${KAFKA_FQDN}:9092 > /var/log/mysql-consumer2.log &
 
 # run last one in foreground so that docker waits
 java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
         -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost -g ${GROUP_ID} \
-        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -zk ${KAFKA_FQDN} > /var/log/mysql-consumer3.log
+        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -b ${KAFKA_FQDN}:9092 > /var/log/mysql-consumer3.log
