@@ -22,14 +22,14 @@ rm -rf /var/cache/apk/*
 # -- Tomcat
 # --
 wget http://mirrors.gigenet.com/apache/tomcat/tomcat-9/v9.0.0.M17/bin/apache-tomcat-9.0.0.M17.tar.gz
-tar xzf apache-tomcat-9.0.0.M9.tar.gz
-rm apache-tomcat-9.0.0.M9.tar.gz
+tar xzf apache-tomcat-9.0.0.M17.tar.gz
+rm apache-tomcat-9.0.0.M17.tar.gz
 
 mkdir -p /usr/local/tomcat
-cd apache-tomcat-9.0.0.M9
+cd apache-tomcat-9.0.0.M17
 mv * /usr/local/tomcat/
 cd ..
-rm -rf apache-tomcat-9.0.0.M9
+rm -rf apache-tomcat-9.0.0.M17
 
 
 # Update the tomcat files
