@@ -4,9 +4,13 @@
 # OpenBMP/UI Install script
 #
 
+# Add build details
+touch /usr/local/build-${BUILD_NUMBER}
+
 #
 # Defaults
 #
+
 
 #
 # Install depends
@@ -17,7 +21,7 @@ rm -rf /var/cache/apk/*
 # --
 # -- Tomcat
 # --
-wget http://mirrors.gigenet.com/apache/tomcat/tomcat-9/v9.0.0.M9/bin/apache-tomcat-9.0.0.M9.tar.gz
+wget http://mirrors.gigenet.com/apache/tomcat/tomcat-9/v9.0.0.M17/bin/apache-tomcat-9.0.0.M17.tar.gz
 tar xzf apache-tomcat-9.0.0.M9.tar.gz
 rm apache-tomcat-9.0.0.M9.tar.gz
 

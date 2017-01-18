@@ -9,6 +9,9 @@
 #
 # Author: Tim Evens <tim@openbmp.org>
 
+# Add build details
+touch /usr/local/build-${BUILD_NUMBER}
+
 #
 # Defaults
 #

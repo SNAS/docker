@@ -18,6 +18,9 @@ OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD:="openbmp"}
 # Disable interactive
 export DEBIAN_FRONTEND=noninteractive
 
+# Add build details
+touch /usr/local/build-${BUILD_NUMBER}
+
 # Install base packages
 apt-get update
 
