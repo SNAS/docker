@@ -20,6 +20,8 @@ FROM ubuntu:trusty
 ADD scripts/install /tmp/
 ADD scripts/run /usr/sbin/
 
+ENV BUILD_NUMBER ${BUILD_NUMBER}
+
 # Proxy servers
 #ENV http_proxy http://proxy:80
 #ENV https_proxy http://proxy:80

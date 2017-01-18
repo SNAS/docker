@@ -27,6 +27,8 @@ ADD files/geo_ip.db /usr/local/
 ADD files/users.db /usr/local/users.db
 COPY files/whois.db.gz /usr/local/
 
+ENV BUILD_NUMBER ${BUILD_NUMBER}
+
 # Proxy servers
 #ENV http_proxy http://proxy:80
 #ENV https_proxy http://proxy:80
