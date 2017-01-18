@@ -6,7 +6,7 @@
 # Pull base image.
 FROM alpine:3.3
 
-ENV BUILD_NUMBER ${BUILD_NUMBER}
+ARG BUILD_NUMBER=0
 
 # Add files.
 ADD scripts/install /tmp/

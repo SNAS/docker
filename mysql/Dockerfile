@@ -13,7 +13,7 @@
 # Pull base image.
 FROM ubuntu:trusty
 
-ENV BUILD_NUMBER ${BUILD_NUMBER}
+ARG BUILD_NUMBER=0
 
 # Proxy/if behind firewall
 #   Update your /etc/sysconfig/docker or /etc/default/docker file by adding proxy envs there using export <var>=<val>
