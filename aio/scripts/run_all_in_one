@@ -151,10 +151,15 @@ sed -i -r "s/^[#]*advertised.listeners=(.*):\/\/.*/advertised.listeners=\1:\/\/$
 
 
 # Start Kafka
+rm -rf /tmp/zookeeper
+rm -rf /data/mysql/kafka
+mkdir /data/mysql/kafka
 cd /usr/local/kafka
 bin/zookeeper-server-start.sh config/zookeeper.properties > /var/log/zookeeper.log &
 sleep 8
 JMX_PORT=9999 bin/kafka-server-start.sh config/server.properties > /var/log/kafka.log &
+
+sleep 2
 
 if [[ $(ps -ef | grep kafka  | grep -v grep | wc -l) -ne 2 ]]; then
     echo "FAILED to start Kafka or Zookeeper, cannot proceed"
@@ -181,12 +186,10 @@ java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExpl
 java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
         -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost  -g ${GROUP_ID} \
         -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -b localhost:9092 > /var/log/mysql-consumer3.log &
+java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
+        -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost  -g ${GROUP_ID} \
+        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -b localhost:9092 > /var/log/mysql-consumer4.log &
 
-
-if [[ $(ps -ef | grep kafka  | grep -v grep | wc -l) -ne 2 ]]; then
-    echo "FAILED to start Kafka or Zookeeper, cannot proceed"
-    exit 1
-fi
 
 # Start the rpki validator
 if [[ ${DISABLE_RPKI:-""} = "" ]]; then

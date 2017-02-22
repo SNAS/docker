@@ -91,6 +91,7 @@ MYSQL\_OPENBMP\_PASSWORD | password | MySQL openbmp user password.  The default 
     docker run -d --name=openbmp_aio \
          -e API_FQDN=localhost \
          -v /var/openbmp/mysql:/data/mysql \
+         -v /var/openbmp/config:/config \
          -p 3306:3306 -p 2181:2181 -p 9092:9092 -p 5000:5000 -p 8001:8001 \
          openbmp/aio
 

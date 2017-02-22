@@ -111,7 +111,7 @@ rm -rf /tmp/kafka_2.11-0.10.0.1*
 mkdir -m 0750 /var/kafka
 
 # Update config
-sed -i -r 's/^[#]*log.dirs=.*/log.dirs=\/var\/kafka/' config/server.properties
+sed -i -r 's/^[#]*log.dirs=.*/log.dirs=\/data\/mysql\/kafka/' config/server.properties
 sed -i -r 's/^[#]*log.retention.hours=.*/log.retention.hours=24/' config/server.properties
 sed -i -r 's/^[#]*num.partitions=.*/num.partitions=6/' config/server.properties
 

@@ -29,6 +29,7 @@ RUN /tmp/install
 
 # Define mount points.
 VOLUME ["/config"]
+VOLUME ["/data/kafka"]
 
 # Define working directory.
 WORKDIR /tmp

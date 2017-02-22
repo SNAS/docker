@@ -46,6 +46,8 @@ else
 fi
 
 # Start Kafka
+rm -rf /tmp/zookeeper
+rm -rf /data/kafka/*
 cd /usr/local/kafka
 bin/zookeeper-server-start.sh config/zookeeper.properties > /var/log/zookeeper.log &
 sleep 8

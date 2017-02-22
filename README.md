@@ -9,6 +9,30 @@ Docker files for OpenBMP.
 > ####NOTE
 > You should use the latest docker version, documented in this section.
 
+### CentOS 6
+
+> #### CentOS 7 works fine by following the docker install instructions, so they are not documented here. 
+
+The below are steps for how to install docker on CentOS 6.
+
+```sh
+# Add repo for docker package.  This works with CentOS 6.7 too
+rpm -iUvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+
+# Define any proxies if you have them
+export http_proxy=https://proxy.blah.com:80
+export https_proxy=https://proxy.blah.com:80
+
+# Install docker
+yum -y install docker-io
+
+# add the below to /etc/sysconfig/docker if you have proxies
+export http_proxy="http://proxy.blah.com:80"
+export https_proxy="http://proxy.blah.com:80"
+
+# Start docker
+service docker start 
+```
 
 ### Ubuntu 14.04 (trusty)
 The below instructions are for Ubuntu 14.04, but you can install docker on CentOS or
