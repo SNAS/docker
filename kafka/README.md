@@ -24,7 +24,7 @@ Docker host should be **Linux x86_64**.   Follow the [Docker Instructions](https
 
 - - -
 
-#### 3) Create Kafka persistent volume
+### 3) Create Kafka persistent volume
 Depending on your docker [devicedriver](https://docs.docker.com/engine/reference/commandline/dockerd/), the root filesystem in the container may not be the best
 place to house the kafka data files.  The default for **devicemapper** is 10GB, which isn't enough
 disk space for a large data collection.  The way to work around this is to use the below docker
@@ -59,7 +59,7 @@ NAME | Value | Details
     docker run -d \
          --name=openbmp_kafka \
          -e KAFKA_FQDN=localhost \
-         -v /var/openbmp/kafka:/data/kafka
+         -v /var/openbmp/kafka:/data/kafka \
          -p 2181:2181 -p 9092:9092 \
          openbmp/kafka
 
