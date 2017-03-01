@@ -172,7 +172,7 @@ cd /tmp
 # configure DB_REST - In case the password is different
 sed -r -i "s/username=\"[^\"]+\"/username=\"${OPENBMP_DB_USER}\"/" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
 sed -r -i "s/password=\"[^\"]+\"/password=\"${OPENBMP_DB_PASSWORD}\"/" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
-sed -r -i "s/jdbc:mysql:[^\"]+/jdbc:mysql:\/\/localhost:3306\/openBMP\//" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
+sed -r -i "s/jdbc:mariadb:[^\"]+/jdbc:mariadb:\/\/localhost:3306\/openBMP\//" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
 
 service tomcat7 restart
 
