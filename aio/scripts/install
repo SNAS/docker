@@ -57,7 +57,7 @@ rm -f /tmp/db_rest.war
 # configure DB_REST
 sed -r -i "s/username=\"[^\"]+\"/username=\"openbmp\"/" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
 sed -r -i "s/password=\"[^\"]+\"/password=\"${OPENBMP_DB_PASSWORD}\"/" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
-sed -r -i "s/jdbc:mysql:[^\"]+/jdbc:mysql:\/\/localhost:3306\/openBMP\//" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
+sed -r -i "s/jdbc:mariadb:[^\"]+/jdbc:mariadb:\/\/localhost:3306\/openBMP\//" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
 
 # --
 # -- MySQL/MariaDB server
