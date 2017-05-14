@@ -25,8 +25,8 @@ SYS_NUM_CPU=$(grep processor /proc/cpuinfo | wc -l)
 
 
 # Start services
-service rsyslog start
-cron
+rsyslogd
+crond
 
 #
 # Update kafka fqdn/hostname
