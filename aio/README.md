@@ -5,7 +5,7 @@ All-in-one includes everything needed to run the collector and store the data in
 #### Container Includes
 * **Openbmpd** - Latest collector (listening port is TCP 5000)
 * **MariaDB 10.0** - MySQL server (listening port TCP 3306)
-* **Apache Kafka 0.9.0.1** - High performing message bus (listening ports are TCP 2181 and 9092)
+* **Apache Kafka 0.10.1.1** - High performing message bus (listening ports are TCP 2181 and 9092)
 * **Tomcat/DB_REST** - Latest Rest interface into MySQL/MariaDB (listening port TCP 8001)
 * **Openbmp MySQL Consumer** - Latest Consumer that puts all data into MySQL
 * **RPKI Validator 2.22** - RPKI Validator - see https://github.com/RIPE-NCC/rpki-validator
@@ -13,7 +13,7 @@ All-in-one includes everything needed to run the collector and store the data in
 
 ### Recommended Current Linux Distributions
 
-  1. Ubuntu 14.04/Trusty
+  1. Ubuntu 16.04
   1. CentOS 7/RHEL 7
 
 ### 1) Install docker
@@ -74,7 +74,7 @@ Below table lists the environment variables that can be used with ``docker -e <n
 
 NAME | Value | Details
 :---- | ----- |:-------
-**API\_FQDN** | hostname | **required** Fully qualified hostname for the docker host/IP of this container, will be used for API and Kafka.  You can use **localhost** if there are no external consumers.
+**KAFKA\_FQDN** | hostname | **required** Fully qualified hostname for the docker host/IP of this container.  You can use **localhost** if there are no external consumers.
 **ADMIN\_ID** | string | The collector's admin ID.  This defaults to **collector**, but can be any string to identify this collector instance.
 MEM | RAM in GB | The size of RAM allowed for container in gigabytes. (e.g. ```-e MEM=15```)
 DISABLE_RPKI | 1 | Indicates if RPKI should be disabled.
@@ -89,7 +89,7 @@ MYSQL\_OPENBMP\_PASSWORD | password | MySQL openbmp user password.  The default 
 > consumers.
 
     docker run -d --name=openbmp_aio \
-         -e API_FQDN=localhost \
+         -e KAFKA_FQDN=localhost \
          -v /var/openbmp/mysql:/data/mysql \
          -v /var/openbmp/config:/config \
          -p 3306:3306 -p 2181:2181 -p 9092:9092 -p 5000:5000 -p 8001:8001 \

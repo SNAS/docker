@@ -100,12 +100,12 @@ wget -O /usr/local/mysql-openbmp-current.db https://raw.githubusercontent.com/Op
 # --
 mkdir /usr/local/kafka
 cd /tmp
-wget http://mirror.cc.columbia.edu/pub/software/apache/kafka/0.10.0.1/kafka_2.11-0.10.0.1.tgz
-tar xzf kafka_2.11-0.10.0.1.tgz
-cd kafka_2.11-0.10.0.1
+wget http://apache.cs.utah.edu/kafka/0.10.1.1/kafka_2.11-0.10.1.1.tgz
+tar xzf kafka_2.11-0.10.1.1.tgz
+cd kafka_2.11-0.10.1.1
 mv * /usr/local/kafka/
 cd /usr/local/kafka/
-rm -rf /tmp/kafka_2.11-0.10.0.1*
+rm -rf /tmp/kafka_2.11-0.10.1.1*
 
 # Create the logs dir for Kafka topics
 mkdir -m 0750 /var/kafka
@@ -184,7 +184,7 @@ chmod 755 /usr/local/whois/*
 mv rpki_validator.py /usr/local/bin/
 chmod 755 /usr/local/bin/rpki_validator.py
 
-#echo "*/30 *  * * *   root   OPENBMP_DB_USER=openbmp OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD} OPENBMP_DB_NAME=openBMP /usr/local/bin/gen-asn-stats.py > /var/log/gen-asn-stats.log" >> /etc/crontab
+echo "*/30 *  * * *   root   OPENBMP_DB_USER=openbmp OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD} OPENBMP_DB_NAME=openBMP /usr/local/bin/gen-asn-stats.py > /var/log/gen-asn-stats.log" >> /etc/crontab
 echo "2 17 * * * root /usr/local/whois/gen-whois-route.py -u openbmp -p ${OPENBMP_DB_PASSWORD} -d openBMP localhost  > /var/log/openbmp-whois-route.log" >> /etc/crontab
 echo "12 1 * * * root /usr/local/rpki/rpki-validator.sh start > /dev/null" >> /etc/crontab
 echo "1 */2   * * *   root     /usr/local/bin/rpki_validator.py  -u openbmp -p ${OPENBMP_DB_PASSWORD} -s localhost:8080 localhost > /var/log/rpki-validator.log" >> /etc/crontab

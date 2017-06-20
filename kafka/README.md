@@ -5,12 +5,12 @@ or you can use your own Kafka install.  OpenBMP supports consumer load balancing
 define at least 4 partitions.
 
 #### Container Includes
-* **Apache Kafka 0.8.x** - High performing message bus (listening ports are TCP 2181 and 9092)
+* **Apache Kafka 0.10.1.1** - High performing message bus (listening ports are TCP 2181 and 9092)
 
 
 ### Recommended Current Linux Distributions
 
-  1. Ubuntu 14.04/Trusty
+  1. Ubuntu 16.04
   1. CentOS 7/RHEL 7
 
 ### 1) Install docker

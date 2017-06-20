@@ -125,9 +125,12 @@ if [[ -f /config/hosts ]]; then
     cat /config/hosts >> /etc/hosts
 fi
 
+
 #
 # Update kafka fqdn/hostname
 #
+
+# Below is to support older usage of API_FQDN.  Going forward we use KAFKA_FQDN
 if [[ ${API_FQDN:-""} = "" ]]; then
     API_FQDN=localhost
 
@@ -135,19 +138,26 @@ elif [[ ${API_FQDN} == "::1" ]]; then
     API_FQDN="localhost"
 fi
 
-# If API_FQDN doesn't resolve, then use localhost
-ping -c 1 $API_FQDN
+
+if [[ ${KAFKA_FQDN:-""} = "" ]]; then
+    KAFKA_FQDN=${API_FQDN}
+
+elif [[ ${KAFKA_FQDN} == "::1" ]]; then
+    KAFKA_FQDN="localhost"
+fi
+
+# If KAFKA_FQDN doesn't resolve, then use localhost
+ping -c 1 $KAFKA_FQDN
 if [[ $? -eq 2 ]]; then
-    echo "NOTICE: $API_FQDN cannot be resolved or reached.  Using 'localhost' instead."
-    API_FQDN=localhost
+    echo "NOTICE: $KAFKA_FQDN cannot be resolved or reached.  Using 'localhost' instead."
+    KAFKA_FQDN=localhost
 fi
 
 # Update kafka config
-sed -i -r "s/^[#]*advertised.host.name=.*/advertised.host.name=${API_FQDN}/" \
+sed -i -r "s/^[#]*advertised.host.name=.*/advertised.host.name=${KAFKA_FQDN}/" \
         /usr/local/kafka/config/server.properties
-sed -i -r "s/^[#]*advertised.listeners=(.*):\/\/.*/advertised.listeners=\1:\/\/${API_FQDN}:9092/" \
+sed -i -r "s/^[#]*advertised.listeners=(.*):\/\/.*/advertised.listeners=\1:\/\/${KAFKA_FQDN}:9092/" \
         /usr/local/kafka/config/server.properties
-
 
 
 # Start Kafka

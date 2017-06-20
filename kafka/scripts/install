@@ -26,12 +26,12 @@ apk add --update wget unzip openjdk7-jre-base rsyslog && rm -rf /var/cache/apk/*
 # --
 mkdir /usr/local/kafka
 cd /tmp
-wget http://mirror.cc.columbia.edu/pub/software/apache/kafka/0.10.0.1/kafka_2.11-0.10.0.1.tgz
-tar xzf kafka_2.11-0.10.0.1.tgz
-cd kafka_2.11-0.10.0.1
+wget http://apache.cs.utah.edu/kafka/0.10.1.1/kafka_2.11-0.10.1.1.tgz
+tar xzf kafka_2.11-0.10.1.1.tgz
+cd kafka_2.11-0.10.1.1
 mv * /usr/local/kafka/
 cd /usr/local/kafka/
-rm -rf /tmp/kafka_2.11-0.10.0.1*
+rm -rf /tmp/kafka_2.11-0.10.1.1*
 
 # Create the logs dir for Kafka topics
 mkdir -m 0750 /var/kafka
