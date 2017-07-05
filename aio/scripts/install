@@ -1,7 +1,7 @@
 #!/bin/bash
 # All-in-One install script
 #
-#  Copyright (c) 2013-2016 Cisco Systems, Inc. and others.  All rights reserved.
+#  Copyright (c) 2013-2017 Cisco Systems, Inc. and others.  All rights reserved.
 #
 #  This program and the accompanying materials are made available under the
 #  terms of the Eclipse Public License v1.0 which accompanies this distribution,
@@ -25,20 +25,20 @@ touch /usr/local/build-${BUILD_NUMBER}
 apt-get update
 
 # Fix ubuntu docker install
-sed -i 's/exit 101/exit 0/' /usr/sbin/policy-rc.d
+#sed -i 's/exit 101/exit 0/' /usr/sbin/policy-rc.d
 
 # General depend install
-apt-get -qq install -y ntp debconf-utils wget unzip python python-mysql.connector whois rsync  libssl1.0.0 libsasl2-2
+apt-get -qq install -y cron wget unzip python python-mysql.connector whois rsync  libssl1.0.0 libsasl2-2
 
 # --
 # -- Tomcat and API
 # --
-apt-get -qq install -y openjdk-7-jre-headless tomcat7
+apt-get -qq install -y openjdk-8-jre-headless tomcat8
 
 # Update the tomcat files
-mv /tmp/tomcat7 /etc/default/
-rm -rf /var/lib/tomcat7/webapps/ROOT/*
-sed -i 's/8080/8001/g' /var/lib/tomcat7/conf/server.xml
+mv /tmp/tomcat8 /etc/default/
+rm -rf /var/lib/tomcat8/webapps/ROOT/*
+sed -i 's/8080/8001/g' /var/lib/tomcat8/conf/server.xml
 
 # Extract and install DB rest
 wget --no-check-certificate --auth-no-challenge --http-user=readonly --http-password=openbmp \
@@ -47,32 +47,27 @@ wget --no-check-certificate --auth-no-challenge --http-user=readonly --http-pass
 unzip archive.zip
 mv archive/target/db_rest.war /tmp/
 rm -rf archive
-mkdir -p /var/lib/tomcat7/webapps/db_rest
-cd /var/lib/tomcat7/webapps/db_rest
+mkdir -p /var/lib/tomcat8/webapps/db_rest
+cd /var/lib/tomcat8/webapps/db_rest
 unzip /tmp/db_rest.war
-chown -R tomcat7:tomcat7 /var/lib/tomcat7/webapps/db_rest
+chown -R tomcat8:tomcat8 /var/lib/tomcat8/webapps/db_rest
 cd /tmp
 rm -f /tmp/db_rest.war
 
 # configure DB_REST
-sed -r -i "s/username=\"[^\"]+\"/username=\"openbmp\"/" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
-sed -r -i "s/password=\"[^\"]+\"/password=\"${OPENBMP_DB_PASSWORD}\"/" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
-sed -r -i "s/jdbc:mariadb:[^\"]+/jdbc:mariadb:\/\/localhost:3306\/openBMP\//" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
+sed -r -i "s/username=\"[^\"]+\"/username=\"openbmp\"/" /var/lib/tomcat8/webapps/db_rest/META-INF/context.xml
+sed -r -i "s/password=\"[^\"]+\"/password=\"${OPENBMP_DB_PASSWORD}\"/" /var/lib/tomcat8/webapps/db_rest/META-INF/context.xml
+sed -r -i "s/jdbc:mariadb:[^\"]+/jdbc:mariadb:\/\/localhost:3306\/openBMP\//" /var/lib/tomcat8/webapps/db_rest/META-INF/context.xml
 
 # --
 # -- MySQL/MariaDB server
 # --
 
-# Update the debian selection file for prompts
-#sed -i "s/MYSQL_ROOT_PASSWORD/${MYSQL_ROOT_PASSWORD}/" /tmp/debconf-set-selections
-
-# Apply the selections
-#debconf-set-selections /tmp/debconf-set-selections
-
 # Install MySQL/MariaDB Server
+#apt-get install software-properties-common
 apt-get -y install software-properties-common
-apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db
-add-apt-repository 'deb http://sfo1.mirrors.digitalocean.com/mariadb/repo/10.0/ubuntu trusty main'
+apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8
+add-apt-repository 'deb [arch=amd64,i386,ppc64el] http://mirror.lstn.net/mariadb/repo/10.2/ubuntu xenial main'
 apt-get update
 apt-get -y install mariadb-server
 
@@ -82,15 +77,15 @@ if [[ ! -e /var/mysqltmp ]]; then
     chown mysql:mysql /var/mysqltmp
 fi
 
-mv -f /etc/mysql/debian.cnf /etc/mysql/debian.cnf.bk
-ln -s /etc/mysql/my.cnf /etc/mysql/debian.cnf
-mv -f /etc/mysql/debian-start /etc/mysql/debian-start.orig
-cat > /etc/mysql/debian-start <<END
-#!/bin/bash
-
-exit 0;
-END
-chmod 755 /etc/mysql/debian-start
+#mv -f /etc/mysql/debian.cnf /etc/mysql/debian.cnf.bk
+#ln -s /etc/mysql/my.cnf /etc/mysql/debian.cnf
+#mv -f /etc/mysql/debian-start /etc/mysql/debian-start.orig
+#cat > /etc/mysql/debian-start <<END
+##!/bin/bash
+#
+#exit 0;
+#END
+#chmod 755 /etc/mysql/debian-start
 
 # Download the current OpenBMP schema
 wget -O /usr/local/mysql-openbmp-current.db https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/database/mysql-openbmp-current.db
@@ -100,7 +95,7 @@ wget -O /usr/local/mysql-openbmp-current.db https://raw.githubusercontent.com/Op
 # --
 mkdir /usr/local/kafka
 cd /tmp
-wget http://apache.cs.utah.edu/kafka/0.10.1.1/kafka_2.11-0.10.1.1.tgz
+wget http://apache.claz.org/kafka/0.10.1.1/kafka_2.11-0.10.1.1.tgz
 tar xzf kafka_2.11-0.10.1.1.tgz
 cd kafka_2.11-0.10.1.1
 mv * /usr/local/kafka/

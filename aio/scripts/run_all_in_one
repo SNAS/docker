@@ -37,8 +37,8 @@ if [[ ${SYS_TOTAL_MEM} -gt ${INIT_SYS_TOTAL_MEM} ]]; then
     echo "   Set the -e MEM=value in GB to less than or equal to system memory or do not set at all."
     exit 1
 
-elif [[ ${SYS_TOTAL_MEM} -lt 4000 ]]; then
-    echo "ERROR: At least 4GB of RAM is required.  Found ${SYS_TOTAL_MEM} MB. Cannot proceed."
+elif [[ ${SYS_TOTAL_MEM} -lt 2500 ]]; then
+    echo "ERROR: At least 2500MB of RAM is required.  Found ${SYS_TOTAL_MEM} MB. Cannot proceed."
     exit 1
 fi
 
@@ -98,8 +98,7 @@ DB_CREATE
 fi
 
 # Start services
-service rsyslog restart
-service ntp start
+#service rsyslog restart
 service mysql restart
 cron
 
@@ -180,11 +179,11 @@ fi
 cd /tmp
 
 # configure DB_REST - In case the password is different
-sed -r -i "s/username=\"[^\"]+\"/username=\"${OPENBMP_DB_USER}\"/" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
-sed -r -i "s/password=\"[^\"]+\"/password=\"${OPENBMP_DB_PASSWORD}\"/" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
-sed -r -i "s/jdbc:mariadb:[^\"]+/jdbc:mariadb:\/\/localhost:3306\/openBMP\//" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
+sed -r -i "s/username=\"[^\"]+\"/username=\"${OPENBMP_DB_USER}\"/" /var/lib/tomcat8/webapps/db_rest/META-INF/context.xml
+sed -r -i "s/password=\"[^\"]+\"/password=\"${OPENBMP_DB_PASSWORD}\"/" /var/lib/tomcat8/webapps/db_rest/META-INF/context.xml
+sed -r -i "s/jdbc:mariadb:[^\"]+/jdbc:mariadb:\/\/localhost:3306\/openBMP\//" /var/lib/tomcat8/webapps/db_rest/META-INF/context.xml
 
-service tomcat7 restart
+service tomcat8 start > /dev/null
 
 # Start the MySQL consumer
 java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
@@ -199,6 +198,12 @@ java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExpl
 java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
         -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost  -g ${GROUP_ID} \
         -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -b localhost:9092 > /var/log/mysql-consumer4.log &
+java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
+        -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost  -g ${GROUP_ID} \
+        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -b localhost:9092 > /var/log/mysql-consumer5.log &
+java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
+        -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost  -g ${GROUP_ID} \
+        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -b localhost:9092 > /var/log/mysql-consumer6.log &
 
 
 # Start the rpki validator

@@ -4,9 +4,9 @@ All-in-one includes everything needed to run the collector and store the data in
 
 #### Container Includes
 * **Openbmpd** - Latest collector (listening port is TCP 5000)
-* **MariaDB 10.0** - MySQL server (listening port TCP 3306)
+* **MariaDB 10.2** - MySQL server (listening port TCP 3306)
 * **Apache Kafka 0.10.1.1** - High performing message bus (listening ports are TCP 2181 and 9092)
-* **Tomcat/DB_REST** - Latest Rest interface into MySQL/MariaDB (listening port TCP 8001)
+* **Tomcat8/DB_REST** - Latest Rest interface into MySQL/MariaDB (listening port TCP 8001)
 * **Openbmp MySQL Consumer** - Latest Consumer that puts all data into MySQL
 * **RPKI Validator 2.22** - RPKI Validator - see https://github.com/RIPE-NCC/rpki-validator
 
