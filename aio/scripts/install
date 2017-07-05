@@ -28,7 +28,7 @@ apt-get update
 #sed -i 's/exit 101/exit 0/' /usr/sbin/policy-rc.d
 
 # General depend install
-apt-get -qq install -y cron wget unzip python python-mysql.connector whois rsync  libssl1.0.0 libsasl2-2
+apt-get -qq install -y cron wget unzip python python-mysql.connector whois rsync net-tools libssl1.0.0 libsasl2-2
 
 # --
 # -- Tomcat and API
@@ -86,6 +86,10 @@ fi
 #exit 0;
 #END
 #chmod 755 /etc/mysql/debian-start
+
+rm -f /etc/mysql/conf.d/debian.cnf
+rm -f /etc/mysql/conf.d/debian-start
+rm -f /etc/mysql/conf.d/mysqld_safe_syslog.cnf
 
 # Download the current OpenBMP schema
 wget -O /usr/local/mysql-openbmp-current.db https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/database/mysql-openbmp-current.db

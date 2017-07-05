@@ -60,6 +60,7 @@ if [[ ! -e /data/mysql/openBMP || $REINIT_DB = 1 ]]; then
     rm -rf /data/mysql/*
 
     # Reinitialize the database
+    mysqld --initialize --console
     mysql_install_db --user=mysql --basedir /usr --explicit_defaults_for_timestamp --datadir=/data/mysql > /dev/null
     service mysql start
     mysqladmin -u root password "${MYSQL_ROOT_PASSWORD}"
@@ -99,6 +100,7 @@ fi
 
 # Start services
 #service rsyslog restart
+chown -R mysql /data/mysql/*
 service mysql restart
 cron
 
@@ -106,7 +108,7 @@ found=0
 while [[ $found -eq 0 ]]; do
   ps -e -o comm | grep mysqld > /dev/null
   if [[ $? -ne 0 ]]; then
-        echo "ERROR: MySQL is not running, check /var/log/syslog for details.  Cannot proceed."
+        echo "ERROR: MySQL is not running, check /var/log/mysql/error.log for details.  Cannot proceed."
         exit 1
   fi
 
