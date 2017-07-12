@@ -28,7 +28,7 @@ apt-get update
 #sed -i 's/exit 101/exit 0/' /usr/sbin/policy-rc.d
 
 # General depend install
-apt-get -qq install -y cron wget unzip python python-mysql.connector whois rsync net-tools libssl1.0.0 libsasl2-2
+apt-get -qq install -y cron wget unzip python python-mysql.connector whois rsync net-tools iputils-ping libssl1.0.0 libsasl2-2
 
 # --
 # -- Tomcat and API
@@ -39,6 +39,10 @@ apt-get -qq install -y openjdk-8-jre-headless tomcat8
 mv /tmp/tomcat8 /etc/default/
 rm -rf /var/lib/tomcat8/webapps/ROOT/*
 sed -i 's/8080/8001/g' /var/lib/tomcat8/conf/server.xml
+sed -i '/port=\"8001\"/a\
+               compression="on" compressionMinSize="8192"\
+               compressableMimeType="text/json,application/json"\
+               noCompressionUserAgents="gozilla, traviata"' /var/lib/tomcat8/conf/server.xml
 
 # Extract and install DB rest
 wget --no-check-certificate --auth-no-challenge --http-user=readonly --http-password=openbmp \
