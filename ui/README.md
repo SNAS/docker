@@ -5,7 +5,7 @@ attention: Note you must be running the latest db_rest, MySQL schema, and openbm
 
 Includes the following:
 
-* **tomcat9** - tomcat is used to support future java apps
+* **nginx** - Webserver
 * **ui** - bmpUI
 
 > #### NOTE
@@ -14,7 +14,7 @@ Includes the following:
 
 ### Recommended Current Linux Distributions
 
-  1. Ubuntu 14.04/Trusty
+  1. Ubuntu 16.04
   1. CentOS 7/RHEL 7
 
 ### 1) Install docker

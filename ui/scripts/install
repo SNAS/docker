@@ -8,42 +8,29 @@
 touch /usr/local/build-${BUILD_NUMBER}
 
 #
-# Defaults
-#
-
-
-#
 # Install depends
 #
-apk add  --update iproute2 wget unzip  ca-certificates openjdk8-jre-base
+apk add  --update iproute2 wget unzip ca-certificates
+
+# --
+# -- Nginx X
+# --
+apk add nginx
+adduser -D -u 1000 -g 'www' www
+mkdir /www
+chown -R www:www /var/lib/nginx
+chown -R www:www /www
+
+# Cleanup
 rm -rf /var/cache/apk/*
 
-# --
-# -- Tomcat
-# --
-wget http://mirrors.gigenet.com/apache/tomcat/tomcat-9/v9.0.0.M21/bin/apache-tomcat-9.0.0.M21.tar.gz
-tar xzf apache-tomcat-9.0.0.M21.tar.gz
-rm apache-tomcat-9.0.0.M21.tar.gz
-
-mkdir -p /usr/local/tomcat
-cd apache-tomcat-9.0.0.M21
-mv * /usr/local/tomcat/
-cd ..
-rm -rf apache-tomcat-9.0.0.M21
-
-
-# Update the tomcat files
-rm -rf /usr/local/tomcat/webapps/*
-mkdir /usr/local/tomcat/webapps/ROOT
-sed -i 's/8080/8000/g' /usr/local/tomcat/conf/server.xml
 
 # Extract BMP-UI
-cd /usr/local/tomcat/webapps/ROOT
+cd /www
 unzip /tmp/bmpUI.war
 rm -f /tmp/bmpUI.war
 
 # --
 # -- Clean up
 # --
-rm -f /tmp/debconf-set-selections
 rm -f /tmp/install

@@ -4,13 +4,14 @@
 #
 
 # Pull base image.
-FROM alpine:3.3
+FROM alpine:3.6
 
 ARG BUILD_NUMBER=0
 
 # Add files.
 ADD scripts/install /tmp/
 ADD scripts/run /usr/sbin/
+ADD files/nginx.conf /etc/nginx/
 COPY files/bmpUI.war /tmp/
 
 # Run Install script

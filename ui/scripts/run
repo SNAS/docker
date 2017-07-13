@@ -6,8 +6,6 @@
 OPENBMP_API_HOST=${OPENBMP_API_HOST:="localhost"}
 OPENBMP_API_PORT=${OPENBMP_API_PORT:=8001}
 
-JAVA_OPTS=${JAVA_OPTS:="-Djava.awt.headless=true -Xmx768m -XX:+UseConcMarkSweepGC"}
-
 #
 # Start common services
 #
@@ -39,19 +37,20 @@ echo "$DOCKER_HOST_IP         docker-localhost" >> /etc/hosts
 # Configure bmpUI API url
 #     Updates "http://"+d+":"+e+"/db_rest/v1/"
 if [[ ${OPENBMP_API_HOST} == "docker-localhost" ]]; then
-    sed -i -r "s/http:\/\/([^:]+):.*\/db_rest\/v1\//http:\/\/\1:${OPENBMP_API_PORT}\/db_rest\/v1\//" /usr/local/tomcat/webapps/ROOT/scripts/scripts.*.js
+    sed -i -r "s/http:\/\/([^:]+):.*\/db_rest\/v1\//http:\/\/\1:${OPENBMP_API_PORT}\/db_rest\/v1\//" /www/scripts/scripts.*.js
 else
-    sed -i -r "s/http:\/\/.*\/db_rest\/v1\//http:\/\/${OPENBMP_API_HOST}:${OPENBMP_API_PORT}\/db_rest\/v1\//" /usr/local/tomcat/webapps/ROOT/scripts/scripts.*.js
+    sed -i -r "s/http:\/\/.*\/db_rest\/v1\//http:\/\/${OPENBMP_API_HOST}:${OPENBMP_API_PORT}\/db_rest\/v1\//" /www/scripts/scripts.*.js
 fi
 
 
 #
-# Start tomcat
+# Start nginx
 #
-export JAVA_OPTS
-cd /usr/local/tomcat
-./bin/startup.sh
-
+# nginx -s stop
+nginx
 
 # for docker, hang around
-tail -f /usr/local/tomcat/logs/catalina.out
+sleep 3
+echo "Running, now tailing /var/log/nginx/error.log..."
+tail -f /var/log/nginx/error.log
+
