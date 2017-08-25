@@ -154,6 +154,8 @@ if [[ $? -eq 2 ]]; then
     KAFKA_FQDN=localhost
 fi
 
+## Add KAFKA_FQDN to /etc/hosts as 127.0.0.1
+
 # Update kafka config
 sed -i -r "s/^[#]*advertised.host.name=.*/advertised.host.name=${KAFKA_FQDN}/" \
         /usr/local/kafka/config/server.properties
@@ -226,6 +228,8 @@ sed -r -i "s/admin_id:.*/admin_id: ${ADMIN_ID}/" /usr/etc/openbmp/openbmpd.conf
 if [[ -f /config/openbmpd.conf ]]; then
     OPENBMP_CFG_FILE=/config/openbmpd.conf
 fi
+
+echo " -----| RUNNING COLLECTOR |------"
 
 cd /var/log
 /usr/bin/openbmpd -f -l /var/log/openbmpd.log -c ${OPENBMP_CFG_FILE}

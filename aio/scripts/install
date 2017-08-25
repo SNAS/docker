@@ -165,6 +165,9 @@ rm -rf archive
 cd /usr/local
 gzip -d whois.db.gz
 
+# Remove the debian-start script that causes errors
+echo "exit 0" > /etc/mysql/debian-start
+
 
 # --
 # -- Cron scripts

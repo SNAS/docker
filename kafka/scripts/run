@@ -45,6 +45,9 @@ else
         /usr/local/kafka/config/server.properties
 fi
 
+## Add KAFKA_FQDN to /etc/hosts as 127.0.0.1
+
+
 # Start Kafka
 rm -rf /tmp/zookeeper
 rm -rf /data/kafka/*
