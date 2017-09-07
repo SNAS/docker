@@ -111,6 +111,11 @@ DB_CREATE
         mysql -u openbmp --password=${OPENBMP_DB_PASSWORD} openBMP < /usr/local/whois.db
     fi
 
+    # Import stored procedures
+    mysql -u openbmp --password=${OPENBMP_DB_PASSWORD} openBMP < /usr/local/ls_isis_spf.sql
+    mysql -u openbmp --password=${OPENBMP_DB_PASSWORD} openBMP < /usr/local/ls_ospf_spf.sql
+    mysql -u openbmp --password=${OPENBMP_DB_PASSWORD} openBMP < /usr/local/mysql-openbmp-proc-deleterouter.sql
+
     # Import geo_ip data
     if [[ -f /config/mysql/geo_ip.db ]]; then
         mysql -u openbmp --password=${OPENBMP_DB_PASSWORD} openBMP < /config/mysql/geo_ip.db
@@ -118,6 +123,9 @@ DB_CREATE
         mysql -u openbmp --password=${OPENBMP_DB_PASSWORD} openBMP < /usr/local/geo_ip.db
     fi
 
+    # Update schema version
+    cp /usr/local/schema-version /data/mysql
+    sed -i 's/CURRENT_//' /data/mysql/schema-version
 else
     CURRENT_SCHEMA_VERSION=""
     source /usr/local/schema-version

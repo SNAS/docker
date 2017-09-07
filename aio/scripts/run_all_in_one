@@ -96,6 +96,15 @@ DB_CREATE
         mysql -u openbmp --password=${OPENBMP_DB_PASSWORD} openBMP < /usr/local/geo_ip.db
     fi
 
+    # Update schema version
+    cp /usr/local/schema-version /data/mysql
+    sed -i 's/CURRENT_//' /data/mysql/schema-version
+
+    # Import stored procedures
+    mysql -u openbmp --password=${OPENBMP_DB_PASSWORD} openBMP < /usr/local/ls_isis_spf.sql
+    mysql -u openbmp --password=${OPENBMP_DB_PASSWORD} openBMP < /usr/local/ls_ospf_spf.sql
+    mysql -u openbmp --password=${OPENBMP_DB_PASSWORD} openBMP < /usr/local/mysql-openbmp-proc-deleterouter.sql
+
 else
     CURRENT_SCHEMA_VERSION=""
     source /usr/local/schema-version
