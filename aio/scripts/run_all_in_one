@@ -96,6 +96,21 @@ DB_CREATE
         mysql -u openbmp --password=${OPENBMP_DB_PASSWORD} openBMP < /usr/local/geo_ip.db
     fi
 
+else
+    CURRENT_SCHEMA_VERSION=""
+    source /usr/local/schema-version
+    if [[ -f /data/mysql/schema-version ]]; then
+        source /data/mysql/schema-version
+    else
+        SCHEMA_VERSION=""
+    fi
+
+    if [[ $CURRENT_SCHEMA_VERSION != $SCHEMA_VERSION ]]; then
+        echo "Current schema version '$CURRENT_SCHEMA_VERSION' doesn't match existing schema '$SCHEMA_VERSION'"
+        echo "Running migration script"
+        MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} /usr/local/migrate_db.sh
+    fi
+
 fi
 
 # Start services
@@ -201,7 +216,7 @@ while [[ $i -lt 6 ]]; do
 done
 
 # Start the rpki validator
-if [[ ${DISABLE_RPKI:-""} = "" ]]; then
+if [[ ${ENABLE_RPKI:-""} != "" ]]; then
     if [[ -d /config/rpki/tal ]]; then
         cp -f /config/rpki/tal/* /usr/local/rpki/conf/tal/
     fi
@@ -229,7 +244,13 @@ if [[ -f /config/openbmpd.conf ]]; then
     OPENBMP_CFG_FILE=/config/openbmpd.conf
 fi
 
-echo " -----| RUNNING COLLECTOR |------"
+echo " -----| RUNNING |------"
 
 cd /var/log
 /usr/bin/openbmpd -f -l /var/log/openbmpd.log -c ${OPENBMP_CFG_FILE}
+
+echo "--------------------------------"
+echo "collector stopped"
+echo "--------------------------------"
+tail -100 /var/log/openbmpd.log
+echo "--------------------------------"

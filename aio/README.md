@@ -77,7 +77,7 @@ NAME | Value | Details
 **KAFKA\_FQDN** | hostname | **required** Fully qualified hostname for the docker host/IP of this container.  You can use **localhost** if there are no external consumers.
 **ADMIN\_ID** | string | The collector's admin ID.  This defaults to **collector**, but can be any string to identify this collector instance.
 MEM | RAM in GB | The size of RAM allowed for container in gigabytes. (e.g. ```-e MEM=15```)
-DISABLE_RPKI | 1 | Indicates if RPKI should be disabled.
+ENABLE_RPKI | 1 | Indicates if RPKI should be enabled.
 REINIT_DB | 1 | If set to 1 the DB will be reinitialized, which is needed to load the new schema sometimes.  This will wipe out the old data and start from scratch.  When this is not set, the old DB is reused.   (e.g. ```-e REINIT_DB=1```)
 MYSQL\_ROOT\_PASSWORD | password | MySQL root user password.  The default is **OpenBMP**.  The root password can be changed using [standard MySQL instructions](https://dev.mysql.com/doc/refman/5.6/en/resetting-permissions.html).  If you do change the password, you will need to run the container with this env set.
 MYSQL\_OPENBMP\_PASSWORD | password | MySQL openbmp user password.  The default is **openbmp**.  You can change the default openbmp user password using [standard mysql instructions](https://dev.mysql.com/doc/refman/5.6/en/set-password.html).  If you change the openbmp user password you MUST use this env.  

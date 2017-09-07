@@ -118,6 +118,21 @@ DB_CREATE
         mysql -u openbmp --password=${OPENBMP_DB_PASSWORD} openBMP < /usr/local/geo_ip.db
     fi
 
+else
+    CURRENT_SCHEMA_VERSION=""
+    source /usr/local/schema-version
+    if [[ -f /data/mysql/schema-version ]]; then
+        source /data/mysql/schema-version
+    else
+        SCHEMA_VERSION=""
+    fi
+
+    if [[ $CURRENT_SCHEMA_VERSION != $SCHEMA_VERSION ]]; then
+        echo "Current schema version '$CURRENT_SCHEMA_VERSION' doesn't match existing schema '$SCHEMA_VERSION'"
+        echo "Running migration script"
+        MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} /usr/local/migrate_db.sh
+    fi
+
 fi
 
 # Update the hosts file
