@@ -28,7 +28,8 @@ apt-get update
 sed -i 's/exit 101/exit 0/' /usr/sbin/policy-rc.d
 
 # General depend install
-apt-get -qq install -y cron wget unzip python python-mysql.connector whois net-tools iputils-ping libssl1.0.0 libsasl2-2 openjdk-8-jre-headless
+apt-get -qq install -y cron wget unzip python python-mysql.connector whois net-tools iproute2 \
+    iputils-ping libssl1.0.0 libsasl2-2 openjdk-8-jre-headless
 
 # --
 # -- MySQL/MariaDB server
@@ -39,8 +40,8 @@ apt-get -qq install -y cron wget unzip python python-mysql.connector whois net-t
 
 # Install MySQL/MariaDB Server
 apt-get -y install software-properties-common
-apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db
-add-apt-repository 'deb http://sfo1.mirrors.digitalocean.com/mariadb/repo/10.1/ubuntu trusty main'
+apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8
+add-apt-repository 'deb [arch=amd64,i386,ppc64el] http://mirror.lstn.net/mariadb/repo/10.2/ubuntu xenial main'
 apt-get update
 apt-get -y install mariadb-server
 
