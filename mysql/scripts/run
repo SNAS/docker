@@ -194,7 +194,7 @@ while [[ $i -lt ${NUM_MYSQL_CONSUMERS} ]]; do
    java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
         -Duser.timezone=UTC \
         -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost  -g ${GROUP_ID} \
-        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -b localhost:9092 > /var/log/mysql-consumer${i}.log &
+        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -b ${KAFKA_FQDN}:9092 > /var/log/mysql-consumer${i}.log &
 
    i=$((i + 1))
 done
