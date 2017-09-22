@@ -82,6 +82,8 @@ sed -r -i "s/OPENBMP_DB_USER=.*/OPENBMP_DB_USER=${OPENBMP_DB_USER}/" /etc/defaul
 sed -r -i "s/OPENBMP_DB_PASSWORD=.*/OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD}/" /etc/default/openbmpd
 sed -r -i "s/OPENBMP_DB_NAME=.*/OPENBMP_DB_NAME=${OPENBMP_DB_NAME}/" /etc/default/openbmpd
 
+DO_MIGRATION=0
+
 # --
 # -- Reinitialize the database
 # --
@@ -142,8 +144,7 @@ else
 
     if [[ $CURRENT_SCHEMA_VERSION != $SCHEMA_VERSION ]]; then
         echo "Current schema version '$CURRENT_SCHEMA_VERSION' doesn't match existing schema '$SCHEMA_VERSION'"
-        echo "Running migration script"
-        MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} /usr/local/migrate_db.sh
+        DO_MIGRATION=1
     fi
 
 fi
@@ -177,6 +178,11 @@ while [[ $found -eq 0 ]]; do
       sleep 1
   fi
 done
+
+if [[ $DO_MIGRATION -eq 1 ]]; then
+    echo "Running migration script"
+    MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} /usr/local/migrate_db.sh
+fi
 
 
 sleep 1

@@ -66,9 +66,12 @@ sed -r -i "s/MEM_75_PERCENT\$/$((${SYS_TOTAL_MEM} * 70 / 100))M/g" /etc/mysql/my
 sed -r -i "s/MEM_75_PERCENT_BY_ONE\$/$((${SYS_TOTAL_MEM} * 70 / 100 / 1000))/g" /etc/mysql/my.cnf
 sed -r -i "s/IO_THREADS\$/$((${SYS_NUM_CPU} * 3))/g" /etc/mysql/my.cnf
 
+DO_MIGRATION=0
+
 # --
 # -- Reinitialize the database
 # --
+
 if [[ ! -e /data/mysql/openBMP || $REINIT_DB = 1 ]]; then
     rm -rf /data/mysql/*
 
@@ -129,8 +132,7 @@ else
 
     if [[ $CURRENT_SCHEMA_VERSION != $SCHEMA_VERSION ]]; then
         echo "Current schema version '$CURRENT_SCHEMA_VERSION' doesn't match existing schema '$SCHEMA_VERSION'"
-        echo "Running migration script"
-        MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} /usr/local/migrate_db.sh
+        DO_MIGRATION=1
     fi
 
 fi
@@ -156,6 +158,12 @@ while [[ $found -eq 0 ]]; do
       sleep 1
   fi
 done
+
+if [[ $DO_MIGRATION -eq 1 ]]; then
+    echo "Running migration script"
+    MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} /usr/local/migrate_db.sh
+fi
+
 
 # Update the etc hosts file
 if [[ -f /config/hosts ]]; then
