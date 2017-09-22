@@ -28,7 +28,7 @@ apt-get update
 sed -i 's/exit 101/exit 0/' /usr/sbin/policy-rc.d
 
 # General depend install
-apt-get -qq install -y wget unzip python python-mysql.connector openjdk-7-jre-headless
+apt-get -qq install -y cron wget unzip python python-mysql.connector whois net-tools iputils-ping libssl1.0.0 libsasl2-2 openjdk-8-jre-headless
 
 # --
 # -- MySQL/MariaDB server
@@ -50,8 +50,10 @@ if [[ ! -e /var/mysqltmp ]]; then
     chown mysql:mysql /var/mysqltmp
 fi
 
-mv -f /etc/mysql/debian.cnf /etc/mysql/debian.cnf.bk
-ln -s /etc/mysql/my.cnf /etc/mysql/debian.cnf
+rm -f /etc/mysql/conf.d/debian.cnf
+rm -f /etc/mysql/conf.d/debian-start
+rm -f /etc/mysql/conf.d/mysqld_safe_syslog.cnf
+
 
 # Extract the whois.db.gz file
 cd /usr/local
@@ -90,33 +92,39 @@ rm -f archive.zip
 # --
 # -- Tomcat and API
 # --
-apt-get -qq install -y openjdk-7-jre-headless tomcat7
+
+# --
+# -- Tomcat and API
+# --
+apt-get -qq install -y tomcat8
 
 # Update the tomcat files
-mv /tmp/tomcat7 /etc/default/
-rm -rf /var/lib/tomcat7/webapps/ROOT/*
-sed -i 's/8080/8001/g' /var/lib/tomcat7/conf/server.xml
+mv /tmp/tomcat8 /etc/default/
+rm -rf /var/lib/tomcat8/webapps/ROOT/*
+sed -i 's/8080/8001/g' /var/lib/tomcat8/conf/server.xml
+sed -i '/port=\"8001\"/a\
+               compression="on" compressionMinSize="8192"\
+               compressableMimeType="text/json,application/json"\
+               noCompressionUserAgents="gozilla, traviata"' /var/lib/tomcat8/conf/server.xml
 
 # Extract and install DB rest
-wget --no-check-certificate  \
+wget --no-check-certificate --auth-no-challenge --http-user=readonly --http-password=openbmp \
          https://build-jenkins.openbmp.org:8443/job/openbmp-db_rest/lastSuccessfulBuild/artifact/*zip*/archive.zip
 
 unzip archive.zip
-rm -f archive.zip
 mv archive/target/db_rest.war /tmp/
 rm -rf archive
-mkdir -p /var/lib/tomcat7/webapps/db_rest
-cd /var/lib/tomcat7/webapps/db_rest
+mkdir -p /var/lib/tomcat8/webapps/db_rest
+cd /var/lib/tomcat8/webapps/db_rest
 unzip /tmp/db_rest.war
-chown -R tomcat7:tomcat7 /var/lib/tomcat7/webapps/db_rest
+chown -R tomcat8:tomcat8 /var/lib/tomcat8/webapps/db_rest
 cd /tmp
 rm -f /tmp/db_rest.war
 
-
 # configure DB_REST
-sed -r -i "s/username=\"[^\"]+\"/username=\"openbmp\"/" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
-sed -r -i "s/password=\"[^\"]+\"/password=\"${OPENBMP_DB_PASSWORD}\"/" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
-sed -r -i "s/jdbc:mysql:[^\"]+/jdbc:mysql:\/\/localhost:3306\/openBMP\//" /var/lib/tomcat7/webapps/db_rest/META-INF/context.xml
+sed -r -i "s/username=\"[^\"]+\"/username=\"openbmp\"/" /var/lib/tomcat8/webapps/db_rest/META-INF/context.xml
+sed -r -i "s/password=\"[^\"]+\"/password=\"${OPENBMP_DB_PASSWORD}\"/" /var/lib/tomcat8/webapps/db_rest/META-INF/context.xml
+sed -r -i "s/jdbc:mariadb:[^\"]+/jdbc:mariadb:\/\/localhost:3306\/openBMP\//" /var/lib/tomcat8/webapps/db_rest/META-INF/context.xml
 
 
 # --
@@ -127,6 +135,7 @@ wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cro
 wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cron_scripts/db-maint/openbmp-db-maint
 wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cron_scripts/gen-whois/dbAccess.py
 wget https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/cron_scripts/gen-whois/gen-whois-route.py
+
 mv openbmp-db-maint /etc/cron.weekly
 chmod 755 /etc/cron.weekly/openbmp-db-maint
 mv gen-asn-stats.py /usr/local/bin/

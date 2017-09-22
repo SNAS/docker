@@ -11,7 +11,7 @@
 # BUILD: docker build -t openbmp/mysql .
 
 # Pull base image.
-FROM ubuntu:trusty
+FROM ubuntu:xenial
 
 ARG BUILD_NUMBER=0
 
@@ -20,7 +20,7 @@ ARG BUILD_NUMBER=0
 
 # Add files.
 ADD files/my.cnf /etc/mysql/my.cnf.tmpl
-ADD files/tomcat7 /tmp/
+ADD files/tomcat8 /tmp/
 ADD files/geo_ip.db /usr/local/
 COPY files/whois.db.gz /usr/local/
 ADD files/users.db /usr/local/users.db

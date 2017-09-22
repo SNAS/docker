@@ -81,16 +81,6 @@ if [[ ! -e /var/mysqltmp ]]; then
     chown mysql:mysql /var/mysqltmp
 fi
 
-#mv -f /etc/mysql/debian.cnf /etc/mysql/debian.cnf.bk
-#ln -s /etc/mysql/my.cnf /etc/mysql/debian.cnf
-#mv -f /etc/mysql/debian-start /etc/mysql/debian-start.orig
-#cat > /etc/mysql/debian-start <<END
-##!/bin/bash
-#
-#exit 0;
-#END
-#chmod 755 /etc/mysql/debian-start
-
 rm -f /etc/mysql/conf.d/debian.cnf
 rm -f /etc/mysql/conf.d/debian-start
 rm -f /etc/mysql/conf.d/mysqld_safe_syslog.cnf

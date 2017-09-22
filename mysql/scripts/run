@@ -14,6 +14,19 @@ OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD:="openbmp"}
 OPENBMP_DB_USER=${OPENBMP_DB_USER:="openbmp"}
 OPENBMP_DB_NAME=${OPENBMP_DB_NAME:="openBMP"}
 GROUP_ID=${GROUP_ID:="openbmp-mysql-consumer"}
+NUM_MYSQL_CONSUMERS=${NUM_CONSUMERS:=6}
+
+if [[ -f /config/openbmpd ]]; then
+    source /config/openbmpd
+fi
+
+# Update the local defaults file
+echo "MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}" > /etc/default/openbmpd
+echo "OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD}" >> /etc/default/openbmpd
+echo "OPENBMP_DB_USER=${OPENBMP_DB_USER}" >> /etc/default/openbmpd
+echo "OPENBMP_DB_NAME=${OPENBMP_DB_NAME}" >> /etc/default/openbmpd
+echo "GROUP_ID=${GROUP_ID}" >> /etc/default/openbmpd
+echo "ADMIN_ID=${ADMIN_ID}" >> /etc/default/openbmpd
 
 #
 # System info
@@ -63,14 +76,6 @@ sed -r -i "s/MEM_20_PERCENT\$/$((${SYS_TOTAL_MEM} * 20 / 100))M/g" /etc/mysql/my
 sed -r -i "s/MEM_75_PERCENT\$/$((${SYS_TOTAL_MEM} * 70 / 100))M/g" /etc/mysql/my.cnf
 sed -r -i "s/MEM_75_PERCENT_BY_ONE\$/$((${SYS_TOTAL_MEM} * 70 / 100 / 1000))/g" /etc/mysql/my.cnf
 sed -r -i "s/IO_THREADS\$/$((${SYS_NUM_CPU} * 3))/g" /etc/mysql/my.cnf
-
-# Update the source file that the cron script uses
-grep -q OPENBMP_DB_USER /etc/default/openbmpd
-if [[ $? -eq 1 ]]; then
-    echo "OPENBMP_DB_USER=${OPENBMP_DB_USER}" >> /etc/default/openbmpd
-    echo "OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD}" >> /etc/default/openbmpd
-    echo "OPENBMP_DB_NAME=${OPENBMP_DB_NAME}" >> /etc/default/openbmpd
-fi
 
 # Update ENV for openbmpd
 sed -r -i "s/OPENBMP_DB_USER=.*/OPENBMP_DB_USER=${OPENBMP_DB_USER}/" /etc/default/openbmpd
@@ -152,7 +157,7 @@ if [[ -f /config/hosts ]]; then
 fi
 
 # Start services
-service rsyslog start
+chown -R mysql /data/mysql/*
 service mysql restart
 cron
 
@@ -175,18 +180,33 @@ done
 
 
 sleep 1
-service tomcat7 restart
-
+service tomcat8 start > /dev/null
 
 # Start the MySQL consumer
-java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
-        -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost -g ${GROUP_ID} \
-        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -b ${KAFKA_FQDN}:9092 > /var/log/mysql-consumer1.log &
-java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
-        -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost -g ${GROUP_ID} \
-        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -b ${KAFKA_FQDN}:9092 > /var/log/mysql-consumer2.log &
+i=0
+while [[ $i -lt ${NUM_MYSQL_CONSUMERS} ]]; do
+   java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
+        -Duser.timezone=UTC \
+        -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost  -g ${GROUP_ID} \
+        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -b localhost:9092 > /var/log/mysql-consumer${i}.log &
 
-# run last one in foreground so that docker waits
-java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
-        -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost -g ${GROUP_ID} \
-        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -b ${KAFKA_FQDN}:9092 > /var/log/mysql-consumer3.log
+   i=$((i + 1))
+done
+
+
+echo " -----| RUNNING |------"
+while [[ 1 ]]; do
+  netstat -tna | grep :3306 | grep -q LISTEN
+  if [[ $? -ne 0 ]]; then
+      echo "ERROR: MySQL is not running or listening on port 3306. Check /var/log/mysql/error.log. Exiting"
+      break;
+  else
+      sleep 5
+  fi
+done
+
+echo "--------------------------------"
+echo "MySQL container stopped"
+echo "--------------------------------"
+tail -100 /var/log/mysql/error.log
+echo "--------------------------------"

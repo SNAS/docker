@@ -17,8 +17,21 @@ OPENBMP_DB_USER=${OPENBMP_DB_USER:="openbmp"}
 OPENBMP_DB_NAME=${OPENBMP_DB_NAME:="openBMP"}
 GROUP_ID=${GROUP_ID:="openbmp-mysql-consumer"}
 ADMIN_ID=${ADMIN_ID:="collector"}
+NUM_MYSQL_CONSUMERS=${NUM_CONSUMERS:=6}
 
-source /etc/default/openbmpd
+
+if [[ -f /config/openbmpd ]]; then
+    source /config/openbmpd
+fi
+
+# Update the local defaults file
+echo "MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}" > /etc/default/openbmpd
+echo "OPENBMP_DB_PASSWORD=${OPENBMP_DB_PASSWORD}" >> /etc/default/openbmpd
+echo "OPENBMP_DB_USER=${OPENBMP_DB_USER}" >> /etc/default/openbmpd
+echo "OPENBMP_DB_NAME=${OPENBMP_DB_NAME}" >> /etc/default/openbmpd
+echo "GROUP_ID=${GROUP_ID}" >> /etc/default/openbmpd
+echo "ADMIN_ID=${ADMIN_ID}" >> /etc/default/openbmpd
+
 
 ulimit -c unlimited
 
@@ -123,7 +136,6 @@ else
 fi
 
 # Start services
-#service rsyslog restart
 chown -R mysql /data/mysql/*
 service mysql restart
 cron
@@ -215,7 +227,7 @@ service tomcat8 start > /dev/null
 
 # Start the MySQL consumer
 i=0
-while [[ $i -lt 6 ]]; do
+while [[ $i -lt ${NUM_MYSQL_CONSUMERS} ]]; do
    java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
         -Duser.timezone=UTC \
         -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost  -g ${GROUP_ID} \
