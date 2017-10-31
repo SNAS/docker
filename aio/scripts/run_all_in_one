@@ -234,13 +234,20 @@ sed -r -i "s/jdbc:mariadb:[^\"]+/jdbc:mariadb:\/\/localhost:3306\/openBMP\//" /v
 service tomcat8 start > /dev/null
 
 # Start the MySQL consumer
+RUN_CONSUMER_CMD="java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC
+                    -Duser.timezone=UTC
+                    -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost  -g ${GROUP_ID}
+                    -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -b localhost:9092"
+
+if [[ -f /config/obmp-mysql-consumer.yml ]]; then
+    RUN_CONSUMER_CMD="java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC
+                       -Duser.timezone=UTC
+                      -jar /usr/local/openbmp-mysql-consumer.jar -cf /config/obmp-mysql-consumer.yml"
+fi
+
 i=0
 while [[ $i -lt ${NUM_MYSQL_CONSUMERS} ]]; do
-   java -Xmx256M -Xms256M -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC \
-        -Duser.timezone=UTC \
-        -jar /usr/local/openbmp-mysql-consumer.jar  -dh localhost  -g ${GROUP_ID} \
-        -dn openBMP -du ${OPENBMP_DB_USER} -dp ${OPENBMP_DB_PASSWORD} -b localhost:9092 > /var/log/mysql-consumer${i}.log &
-
+   $RUN_CONSUMER_CMD > /var/log/mysql-consumer${i}.log &
    i=$((i + 1))
 done
 
