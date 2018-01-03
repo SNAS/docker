@@ -94,7 +94,7 @@ if [[ ! -e /data/mysql/openBMP || $REINIT_DB = 1 ]]; then
 DB_CREATE
 
     # Import schema
-    mysql -u root --password=${MYSQL_ROOT_PASSWORD} openBMP < /usr/local/mysql-openbmp-current.db
+    mysql -u root --password=${MYSQL_ROOT_PASSWORD} openBMP < /usr/local/mysql-openbmp-current.sql
     mysql -u root --password=${MYSQL_ROOT_PASSWORD} openBMP < /usr/local/users.db
 
 

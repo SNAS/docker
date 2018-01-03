@@ -61,7 +61,7 @@ cd /usr/local
 gzip -d whois.db.gz
 
 # Download the current OpenBMP schema
-wget -O /usr/local/mysql-openbmp-current.db https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/database/mysql-openbmp-current.db
+wget -O /usr/local/mysql-openbmp-current.sql https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/database/mysql-openbmp-current.sql
 
 # Remove the debian-start script that causes errors
 echo "exit 0" > /etc/mysql/debian-start

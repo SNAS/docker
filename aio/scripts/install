@@ -86,7 +86,7 @@ rm -f /etc/mysql/conf.d/debian-start
 rm -f /etc/mysql/conf.d/mysqld_safe_syslog.cnf
 
 # Download the current OpenBMP schema
-wget -O /usr/local/mysql-openbmp-current.db https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/database/mysql-openbmp-current.db
+wget -O /usr/local/mysql-openbmp-current.sql https://raw.githubusercontent.com/OpenBMP/openbmp-mysql-consumer/master/database/mysql-openbmp-current.sql
 
 # --
 # -- Kafka
