@@ -10,7 +10,7 @@
 #
 
 # Pull base image.
-FROM alpine:3.3
+FROM frolvlad/alpine-glibc:alpine-3.7
 
 # Proxy/if behind firewall
 #   Update your /etc/sysconfig/docker or /etc/default/docker file by adding proxy envs there using export <var>=<val>
