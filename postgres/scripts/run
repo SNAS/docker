@@ -152,6 +152,7 @@ enable_rpki() {
     echo "===> Enabling RPKI"
 
     cat > /etc/cron.d/openbmp-rpki <<SETVAR
+MAILTO=""
 
 # Update RPKI
 31 */2 * * *	root  /usr/local/rpki_validator.py -u $PGUSER -p $PGPASSWORD -s 127.0.0.1:8080 127.0.0.1
@@ -172,6 +173,7 @@ enable_irr() {
     echo "===> Enabling IRR"
 
     cat > /etc/cron.d/openbmp-irr <<SETVAR
+MAILTO=""
 
 # Update IRR
 1 1 * * *	root  /usr/local/openbmp/gen_whois_route.py -u $PGUSER -p $PGPASSWORD 127.0.0.1 > /var/log/irr_load.log
@@ -188,6 +190,7 @@ SETVAR
 # -----------------------------------------------
 config_cron() {
     cat > /etc/cron.d/openbmp <<SETVAR
+MAILTO=""
 
 # Update ASN info
 6 1 * * *	root  /usr/local/openbmp/gen_whois_asn.py -u $PGUSER -p $PGPASSWORD 127.0.0.1 >> /var/log/asn_load.log
