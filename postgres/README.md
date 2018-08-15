@@ -15,12 +15,22 @@ This container provides PostgreSQL backend to OpenBMP. It requires the following
   1. Ubuntu 18.04/Bionic
   1. CentOS 7/RHEL 7
 
+#### Storage
+
 You will need to dedicate space for the postgres instance.  Normally two partitions are used.  A good
 starting size for postgres main is 500GB and postgres ts (timescaleDB) is 1TB.  Both disks
 should be fast SSD. ZFS can be used on either of them to add compression. The size you need will depend
 on the number of NLRI's and updates per second.
 
-#### NOTE: Postgres can be killed by the Linux OOM-Killer
+#### Memory & CPU
+
+The size of memory will depend on the type of queries and number of NLRI's.   A good starting point for
+memory is a server with more than 48GB RAM.
+
+The number of vCPU's also varies by the number of concurrent connections and how many threads you use for
+the postgres consumer.  A good starting point is at least 8 vCPU's.   
+
+##### NOTE: Postgres can be killed by the Linux OOM-Killer
 This is very bad as it causes Postgres to restart. This will happen because postgres uses a large shared buffer,
 which causes the OOM to believe it's using a lot of VM.     
 
