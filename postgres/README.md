@@ -25,7 +25,8 @@ on the number of NLRI's and updates per second.
 #### Memory & CPU
 
 The size of memory will depend on the type of queries and number of NLRI's.   A good starting point for
-memory is a server with more than 48GB RAM.
+memory is a server with more than 48GB RAM. You can run on as little as 4GB RAM but that will only
+scale to about 10,000,000 NLRI's.  64BG of RAM should scale to 150,000,000 NLRI's. 
 
 The number of vCPU's also varies by the number of concurrent connections and how many threads you use for
 the postgres consumer.  A good starting point is at least 8 vCPU's.   
@@ -141,6 +142,8 @@ PGDATABASE | database | Name of postgres database, default is **openbmp**
 ```
 docker run -d --name openbmp_psql \
 	-h obmp-psql \
+	-e ENABLE_RPKI=1 \
+	-e ENABLE_IRR=1 \
 	-e KAFKA_FQDN=kafka.domain \
 	--add-host kafka.domain:172.17.0.1 \
 	-e MEM=16 \
