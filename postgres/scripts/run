@@ -193,16 +193,16 @@ config_cron() {
 6 1 * * *	root  /usr/local/openbmp/gen_whois_asn.py -u $PGUSER -p $PGPASSWORD 127.0.0.1 >> /var/log/asn_load.log
 
 # Update aggregation table stats
-*/3 * * * *  root   psql -c "select update_chg_stats('26 minute')"
+*/3 * * * *  root   source /usr/local/openbmp/pg_profile && psql -c "select update_chg_stats('26 minute')"
 
 # Update peer rib counts
-*/15 * * * *	root   psql -c "select update_peer_rib_counts()"
+*/15 * * * *	root   source /usr/local/openbmp/pg_profile && psql -c "select update_peer_rib_counts()"
 
 # Update origin stats
-21 * * * *	root  psql -c "select update_global_ip_rib();"
+21 * * * *	root  source /usr/local/openbmp/pg_profile && psql -c "select update_global_ip_rib();"
 
 # Purge time series data that is older than desired retention
-0 * 1,15 * *     root  psql -c "SELECT drop_chunks(interval '2 weeks');"
+0 * 1,15 * *     root  source /usr/local/openbmp/pg_profile && psql -c "SELECT drop_chunks(interval '2 weeks');"
 
 SETVAR
 
