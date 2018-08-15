@@ -96,10 +96,13 @@ Install OpenBMP using Docker
 Each docker file contains a readme file, see below:
 
 * [All-In-One](aio/README.md)
-* [UI](ui/README.md)
 * [Collector](collector/README.md)
 * [Kafka](kafka/README.md)
+* [PostgreSQL](postgres/README.md)
 * [MySQL](mysql/README.md)
+
+> **openbmp/ui** is archived. Use [obmp-grafana](https://github.com/OpenBMP/obmp-grafana) instead.
+
 
 Install OpenBMP using docker-compose
 ----------------------------
