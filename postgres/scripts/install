@@ -1,0 +1,147 @@
+#!/bin/bash
+# Postgres Backend: install script
+#
+#  Copyright (c) 2018 Cisco Systems, Inc. and others.  All rights reserved.
+#  Copyright (c) 2018 Tim Evens (tim@evensweb.com).  All rights reserved.
+# #
+#  This program and the accompanying materials are made available under the
+#  terms of the Eclipse Public License v1.0 which accompanies this distribution,
+#  and is available at http://www.eclipse.org/legal/epl-v10.html
+#
+# Author: Tim Evens <tim@evensweb.com>
+
+# Add build details
+touch /usr/local/build-${BUILD_NUMBER}
+
+#
+# Defaults
+#
+cd /tmp
+
+# Disable interactive
+export DEBIAN_FRONTEND=noninteractive
+
+# --------------------------------------------------------
+# Install common depends
+mkdir -p /usr/share/man/man1        # Fix for openjdk-8-jre-headless install
+
+apt-get update
+apt-get install -y --no-install-recommends apt-utils
+
+echo "===> Installing depends"
+apt-get install --allow-unauthenticated -y unzip wget whois vim gnupg rsyslog cron rsync kafkacat \
+        python python-psycopg2 python-ipaddr openjdk-8-jre-headless
+
+
+# --------------------------------------------------------
+# Install PostgreSQL
+#
+echo "===> Installing Postgres"
+
+# Add postgres repo source
+export APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1
+echo "deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+apt-get update
+
+apt-get -y install postgresql-10 libpq-dev postgresql-server-dev-10
+
+# Update Access file
+egrep -q -e '^hostssl( |\t)+all' /etc/postgresql/10/main/pg_hba.conf || \
+        echo 'hostssl    all        all        0.0.0.0/0        md5' >> /etc/postgresql/10/main/pg_hba.conf
+
+# Install timescale DB
+echo "===> Installing timescaleDB"
+wget -q https://timescalereleases.blob.core.windows.net/debian/timescaledb-postgresql-10_0.11.0~debian9_amd64.deb
+dpkg -i timescaledb-postgresql-10_0.11.0~debian9_amd64.deb
+
+
+# Update postgresql.conf
+sed -i -e "s/^\#*shared_preload_libraries.*=.*/shared_preload_libraries = \'timescaledb\'/" /etc/postgresql/10/main/postgresql.conf
+sed -i -e "s/^data_directory.*/data_directory = '\/data\/main\/postgres'/" /etc/postgresql/10/main/postgresql.conf
+sed -i -e "s/^\#*listen_addresses.*=.*/listen_addresses = '*'/" /etc/postgresql/10/main/postgresql.conf
+sed -i -e "s/^\#*port.*=.*/port = 5432/" /etc/postgresql/10/main/postgresql.conf
+#sed -i -e "s/^\#*max_connections.*=.*/max_connections = 100/" /etc/postgresql/10/main/postgresql.conf
+sed -i -e "s/^\#*synchronous_commit.*=.*/synchronous_commit = off/" /etc/postgresql/10/main/postgresql.conf
+sed -i -e "s/^\#*max_connections.*=.*/max_connections = 300/" /etc/postgresql/10/main/postgresql.conf
+sed -i -e "s/^\#*wal_compression.*=.*/wal_compression = on/" /etc/postgresql/10/main/postgresql.conf
+sed -i -e "s/^\#*max_wal_size.*=.*/max_wal_size = 16GB/" /etc/postgresql/10/main/postgresql.conf
+
+
+# --------------------------------------------------------
+# Install RPKI Validator
+echo "===> Installing RPKI"
+mkdir /usr/local/rpki
+cd /tmp
+
+wget https://lirportal.ripe.net/certification/content/static/validator/rpki-validator-app-2.24-dist.tar.gz
+tar xzf rpki-validator-app-2.24-dist.tar.gz
+cd rpki-validator-app-2.24
+mv * /usr/local/rpki/
+cd /usr/local/rpki
+rm -rf /tmp/rpki-validator-app-2.24*
+
+sed -i -r 's/^[#]*ui.http.port=.*/ui.http.port=8080/' conf/rpki-validator.conf
+sed -i -r 's/^[#]*validation.remove_old_objects.interval.*/validation.remove_old_objects.interval=2d/' conf/rpki-validator.conf
+
+
+
+# --------------------------------------------------------
+# Download the schema files
+
+echo "===> Installing DB schema files"
+mkdir -p /usr/local/openbmp/db_schema
+cd /usr/local/openbmp/db_schema
+wget -q https://raw.githubusercontent.com/OpenBMP/obmp-postgres/master/database/1_base.sql
+wget -q https://raw.githubusercontent.com/OpenBMP/obmp-postgres/master/database/2_aggregations.sql
+wget -q https://raw.githubusercontent.com/OpenBMP/obmp-postgres/master/database/5_functions.sql
+wget -q https://raw.githubusercontent.com/OpenBMP/obmp-postgres/master/database/8_views.sql
+wget -q https://raw.githubusercontent.com/OpenBMP/obmp-postgres/master/database/9_triggers.sql
+wget -q https://raw.githubusercontent.com/OpenBMP/obmp-postgres/master/database/schema-version
+
+
+# --------------------------------------------------------
+# Install the cron/scripts
+
+echo "===> Installing cron/scripts"
+
+mkdir -p /usr/local/openbmp
+cd /usr/local/openbmp
+wget -q https://raw.githubusercontent.com/OpenBMP/obmp-postgres/master/cron_scripts/gen-whois/dbHandler.py
+wget -q https://raw.githubusercontent.com/OpenBMP/obmp-postgres/master/cron_scripts/gen-whois/gen_whois_asn.py
+wget -q https://raw.githubusercontent.com/OpenBMP/obmp-postgres/master/cron_scripts/gen-whois/gen_whois_route.py
+wget -q https://raw.githubusercontent.com/OpenBMP/obmp-postgres/master/cron_scripts/rpki/rpki_validator.py
+
+chmod 755 *.py
+
+cd /tmp
+
+# --
+# -- OpenBMP Postgres Consumer
+# --
+echo "===> Installing OpenBMP postgres consumer"
+mkdir -p /usr/local/openbmp
+wget -q --no-check-certificate --auth-no-challenge \
+        https://build-jenkins.openbmp.org:8443/view/Consumers/job/obmp-psql/lastSuccessfulBuild/artifact/*zip*/archive.zip
+
+unzip archive.zip
+mv archive/target/obmp-psql-consumer*.jar /usr/local/openbmp/obmp-psql-consumer.jar
+rm -rf archive*
+
+
+# -- 
+# -- Clean up
+# --
+
+echo "===> Cleaning up"
+
+apt-get autoremove
+apt-get clean
+rm -rf /var/lib/postgresql
+rm -rf /usr/share/fonts/*
+rm -rf /usr/share/doc/*
+rm -rf /usr/share/guile/*
+rm -rf /usr/share/X11/*
+rm -rf /usr/share/vim/*
+rm -rf /var/lib/apt/lists/* /var/tmp/*
+rm -f /tmp/install

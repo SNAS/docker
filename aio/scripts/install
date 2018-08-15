@@ -113,12 +113,12 @@ sed -i -r 's/^[#]*num.partitions=.*/num.partitions=6/' config/server.properties
 # --
 mkdir /usr/local/rpki
 cd /tmp
-wget https://lirportal.ripe.net/certification/content/static/validator/rpki-validator-app-2.22-dist.tar.gz
-tar xzf rpki-validator-app-2.22-dist.tar.gz
-cd rpki-validator-app-2.22
+wget https://lirportal.ripe.net/certification/content/static/validator/rpki-validator-app-2.24-dist.tar.gz
+tar xzf rpki-validator-app-2.24-dist.tar.gz
+cd rpki-validator-app-2.24
 mv * /usr/local/rpki/
 cd /usr/local/rpki
-rm -rf /tmp/rpki-validator-app-2.22*
+rm -rf /tmp/rpki-validator-app-2.24*
 
 sed -i -r 's/^[#]*ui.http.port=.*/ui.http.port=8080/' conf/rpki-validator.conf
 sed -i -r 's/^[#]*validation.remove_old_objects.interval.*/validation.remove_old_objects.interval=2d/' conf/rpki-validator.conf
