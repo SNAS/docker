@@ -61,11 +61,16 @@ sed -i -e "s/^\#*shared_preload_libraries.*=.*/shared_preload_libraries = \'time
 sed -i -e "s/^data_directory.*/data_directory = '\/data\/main\/postgres'/" /etc/postgresql/10/main/postgresql.conf
 sed -i -e "s/^\#*listen_addresses.*=.*/listen_addresses = '*'/" /etc/postgresql/10/main/postgresql.conf
 sed -i -e "s/^\#*port.*=.*/port = 5432/" /etc/postgresql/10/main/postgresql.conf
-#sed -i -e "s/^\#*max_connections.*=.*/max_connections = 100/" /etc/postgresql/10/main/postgresql.conf
+#---sed -i -e "s/^\#*max_connections.*=.*/max_connections = 100/" /etc/postgresql/10/main/postgresql.conf
 sed -i -e "s/^\#*synchronous_commit.*=.*/synchronous_commit = off/" /etc/postgresql/10/main/postgresql.conf
-sed -i -e "s/^\#*max_connections.*=.*/max_connections = 300/" /etc/postgresql/10/main/postgresql.conf
 sed -i -e "s/^\#*wal_compression.*=.*/wal_compression = on/" /etc/postgresql/10/main/postgresql.conf
 sed -i -e "s/^\#*max_wal_size.*=.*/max_wal_size = 16GB/" /etc/postgresql/10/main/postgresql.conf
+sed -i -e "s/^\#*autovacuum_vacuum_threshold.*=.*/autovacuum_vacuum_threshold = 100000/" /etc/postgresql/10/main/postgresql.conf
+sed -i -e "s/^\#*autovacuum_analyze_threshold.*=.*/autovacuum_analyze_threshold = 50000/" /etc/postgresql/10/main/postgresql.conf
+sed -i -e "s/^\#*autovacuum_vacuum_scale_factor.*=.*/autovacuum_vacuum_scale_factor = 0/" /etc/postgresql/10/main/postgresql.conf
+sed -i -e "s/^\#*autovacuum_analyze_scale_factor.*=.*/autovacuum_analyze_scale_factor = 0/" /etc/postgresql/10/main/postgresql.conf
+sed -i -e "s/^\#*maintenance_work_mem.*=.*/maintenance_work_mem = 1GB/" /etc/postgresql/10/main/postgresql.conf
+sed -i -e "s/^\#*vacuum_cost_limit.*=.*/vacuum_cost_limit = 2000/" /etc/postgresql/10/main/postgresql.conf
 
 
 # --------------------------------------------------------

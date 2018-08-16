@@ -62,6 +62,14 @@ then try the below:
     sync && echo 3 > /proc/sys/vm/drop_caches
 
 
+#### Postgres Vacuum (reclaim disk space)
+Postgres reclaims deleted/updated records using the vacuum process.  You can run this manually/cron via the 
+```VACUUM``` command.  **autovacuum** is used to do this periodically.   Careful tuning of this
+is required.  Checkout [autovacuum-tuning-basics](https://blog.2ndquadrant.com/autovacuum-tuning-basics/), 
+[Routine Vacuuming](https://www.postgresql.org/docs/current/static/routine-vacuuming.html), and
+[VACUUM](https://www.postgresql.org/docs/current/static/sql-vacuum.html) for more details. 
+
+
 ### 1) Install docker
 Follow the [Docker Instructions](https://docs.docker.com/install) to install docker CE.  
 
