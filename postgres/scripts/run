@@ -155,7 +155,7 @@ enable_rpki() {
 MAILTO=""
 
 # Update RPKI
-31 */2 * * *	root  . /usr/local/openbmp/pg_profile && /usr/local/rpki_validator.py -u $PGUSER -p $PGPASSWORD -s 127.0.0.1:8080 127.0.0.1
+31 */2 * * *	root  . /usr/local/openbmp/pg_profile && /usr/local/openbmp/rpki_validator.py -u $PGUSER -p $PGPASSWORD -s 127.0.0.1:8080 127.0.0.1
 
 SETVAR
 
