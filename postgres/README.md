@@ -10,6 +10,48 @@ This container provides PostgreSQL backend to OpenBMP. It requires the following
 - **TimescaleDB** - Latest version of TimescaleDB
 - **RPKI Validator** - RPKI Validator 2.24. TCP port 8080 
 
+### Kafka Validation Testing
+The Kafka setup can be tricky due to docker networking between containers and remote systems. Kafka clustering
+makes use of a bootstrap server which will advertise each broker ```hostname:port``` that the consumer/producer
+will use.  Each consumer/producer will connect to the brokers using these **advertised** hostnames and ports.  The
+setting in Kafka to configure the broker hostname is ```advertised.listeners```.  The [OpenBMP Kafka](https://github.com/OpenBMP/docker/tree/master/kafka)
+container sets the ```advertised.listeners``` to the environment variable value of **KAFKA_FQDN**:9092.
+
+> NOTE: the port is currently static at 9092 due to NAT/PAT not working well with Kafka advertised listeners and docker container port mapping.
+
+The postgres container (**this container**) uses the **KAFKA_FQDN** as the bootstrap server.  This will work with an
+IP or hostname. When using a hostname, the hostname *MUST* resolve within the container.  While this may work for
+bootstrap server conection, the advertised hostnames need to also resolve in the container.  If using the OpenBMP
+Kafka container, the same KAFKA_FQDN should work fine.   
+
+Regardless of using your own Kafka install or the OpenBMP Kafka container, the postgres container will attempt
+to produce and consume messages to Kafka as a validation test.  This will ensure that the bootstrap and at least one broker server is
+working. If the docker container quits after starting, check ```docker logs openmbp_psql``` for errors relating to
+Kafka communication.  These will need to be resolved before proceeding. 
+
+
+**Kafka Validation is a 3 step process** 
+
+1. Successfully connect to the bootstrap server and retrieve metadata (e.g.  broker hostname:port)
+2. Successfully produce a test message to ```openbmp.parsed.test``` topic
+3. Successfully consume a test message from ```openbmp.parsed.test``` topic
+
+> #### IMPORTANT
+> If using your own Kafka install, make sure you allow producing/consuming to/from **openbmp.parsed.test** 
+> for the consumer validation. 
+
+#### Hostnames in Container
+You can map the Kafka hostname and each broker if they are different using two methods:
+
+1. add ```--add-host HOSTNAME:IP``` to **docker run** command.  Make sure to add one for the bootstrap and each broker.  
+2. Create a **/var/openbmp/config/hosts** file and add the Kafka bootstrap and broker hostname to IP mappings. 
+
+> #### IMPORTANT
+> Docker networking is a pain sometimes, but you can use the **docker0** IP for connections between containers.  If
+> you are using the OpenBMP Kafka container and the Postgres container on the same host, then use the **docker0** IP 
+> address for the Kafka bootstrap/broker hostname mapping.  This IP by default should be **172.17.0.1**.  Check your 
+> install for the correct IP to use. 
+
 ### Recommended Current Linux Distributions and system requirements
 
   1. Ubuntu 18.04/Bionic

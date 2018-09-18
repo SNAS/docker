@@ -30,7 +30,7 @@ apt-get install -y --no-install-recommends apt-utils
 
 echo "===> Installing depends"
 apt-get install --allow-unauthenticated -y unzip wget whois vim gnupg rsyslog cron rsync kafkacat \
-        python python-psycopg2 python-ipaddr openjdk-8-jre-headless
+        python python-psycopg2 python-ipaddr python-dnspython openjdk-8-jre-headless
 
 
 # --------------------------------------------------------

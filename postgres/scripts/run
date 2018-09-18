@@ -17,6 +17,7 @@ export PGPASSWORD=${PGPASSWORD:="openbmp"}
 export PGHOST=${PGHOST:="127.0.0.1"}
 export PGDATABASE=${PGDATABASE:="openbmp"}
 export MEM=${MEM:="1"}                          # mem in gigabytes
+export PGCONNECT_TIMEOUT=15
 
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Functions
@@ -42,8 +43,9 @@ check_kafka() {
         exit 1
     fi
 
+    echo "testing" | timeout 5kafkacat -b $KAFKA_FQDN -P -t openbmp.parsed.test
     echo "===> Checking if we can successfully consume messages"
-    timeout 5 kafkacat -u -b $KAFKA_FQDN -C -c 1 -t openbmp.parsed.collector > /dev/null
+    timeout 5 kafkacat -u -b $KAFKA_FQDN -C -c 1 -t openbmp.parsed.test > /dev/null
 
     if [[ $? -ne 0 ]]; then
         echo "ERROR: Failed to connect to Kafka broker, check the Kafka 'advertised.listeners' configuration."
@@ -201,6 +203,9 @@ MAILTO=""
 # Update peer rib counts
 */15 * * * *	root   . /usr/local/openbmp/pg_profile && psql -c "select update_peer_rib_counts()"
 
+# Update peer update counts
+*/30 * * * *    root   . /usr/local/openbmp/pg_profile && psql -c "select update_peer_update_counts(1800)"
+
 # Update origin stats
 21 * * * *	root  . /usr/local/openbmp/pg_profile && psql -c "select update_global_ip_rib();"
 
@@ -257,13 +262,13 @@ config_cron
 
 config_postgres
 
+rm -f /etc/cron.d/openbmp-rpki
 if [[ ${ENABLE_RPKI:-""} != "" ]]; then
-    echo "===> Enabling RPKI"
     enable_rpki
 fi
 
+rm -f /etc/cron.d/openbmp-irr
 if [[ ${ENABLE_IRR:-""} != "" ]]; then
-    echo "===> Enabling IRR"
     enable_irr
 fi
 
@@ -273,12 +278,27 @@ if [[ ! -f /data/main/postgres/PG_VERSION ]]; then
     initdb_postgres
 fi
 
+# Get rid of previous rsyslogd pid
+rm -f /var/run/rsyslogd.pid
+
 service rsyslog start
 service cron start
 service postgresql start
 
-echo "===> Sleeping for 10 seconds after starting postgres"
-sleep 10
+## WAIT FOR POSTGRES to accept connections
+pg_not_running=1
+while [[ $pg_not_running -ne 0 ]]; do
+  echo "    Waiting for PostgreSQL to start..."
+
+  psql -c 'select 1' > /dev/null
+  pg_not_running=$?
+
+  if [[ $pg_not_running -ne 0 ]]; then
+      sleep 5
+  fi
+done
+
+echo "===> Postgres ready"
 
 run_consumer
 

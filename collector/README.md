@@ -58,6 +58,9 @@ OPENBMP\_BUFFER | Size in MB | Defines the openbmpd buffer per router for BMP me
 > This can be internal DNS or manually done by updating the /etc/hosts file on each machine.
 
     docker run -d --name=openbmp_collector -e KAFKA_FQDN=localhost \
+         --sysctl net.ipv4.tcp_keepalive_intvl=30 \
+         --sysctl net.ipv4.tcp_keepalive_probes=5 \
+         --sysctl net.ipv4.tcp_keepalive_time=180 \
          -v /var/openbmp/config:/config \
          -p 5000:5000 \
          openbmp/collector
@@ -77,26 +80,6 @@ Alternatively, it can be easier at times to navigate all the log files from with
 You can use ```docker logs openbmp_collector``` to get the console logs. This is useful if the container exits due to
 invalid start or for another reason.
 
-#### System Start/Restart Config (ubuntu 14.04)
-By default, the containers will not start automatically on system boot/startup.
-You can use the below example to instruct the container to start automatically.
-
-You can read more at [Docker Host Integration](https://docs.docker.com/articles/host_integration/) on how to start containers automatically. 
-
-> #### IMPORTANT
-> The ```--name=openbmp_collector``` parameter given to the ```docker run``` command is used with the ```-a openbmp_collector``` parameter below to start the container by name instead of container ID.  You can use whatever name you want, but make sure to use the same name used in docker run.
-
-    cat <<END > /etc/init/collector-openbmp.conf
-    description "OpenBMP Collector container"
-    author "tim@openbmp.org"
-    start on filesystem and started docker
-    stop on runlevel [!2345]
-    respawn
-    script
-      /usr/bin/docker start -a openbmp_collector
-    end script
-    END
-     
      
 
 
