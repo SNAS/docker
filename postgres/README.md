@@ -197,6 +197,7 @@ docker run -d --name openbmp_psql \
 	-e KAFKA_FQDN=kafka.domain \
 	--add-host kafka.domain:172.17.0.1 \
 	-e MEM=16 \
+	--shm-size=512m \
 	-v /var/openbmp/config:/config \
 	-v /var/openbmp/postgres/main:/data/main \
 	-v /var/openbmp/postgres/ts:/data/ts \

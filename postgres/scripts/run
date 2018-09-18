@@ -43,7 +43,7 @@ check_kafka() {
         exit 1
     fi
 
-    echo "testing" | timeout 5kafkacat -b $KAFKA_FQDN -P -t openbmp.parsed.test
+    echo "testing" | timeout 5 kafkacat -b $KAFKA_FQDN -P -t openbmp.parsed.test
     echo "===> Checking if we can successfully consume messages"
     timeout 5 kafkacat -u -b $KAFKA_FQDN -C -c 1 -t openbmp.parsed.test > /dev/null
 
