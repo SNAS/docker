@@ -195,7 +195,7 @@ config_cron() {
 MAILTO=""
 
 # Update ASN info
-6 1 * * *	root  . /usr/local/openbmp/pg_profile && /usr/local/openbmp/gen_whois_asn.py -u $PGUSER -p $PGPASSWORD 127.0.0.1 >> /var/log/asn_load.log
+6 */2 * * *	root  . /usr/local/openbmp/pg_profile && /usr/local/openbmp/gen_whois_asn.py -u $PGUSER -p $PGPASSWORD 127.0.0.1 >> /var/log/asn_load.log
 
 # Update aggregation table stats
 */3 * * * *  root   . /usr/local/openbmp/pg_profile && psql -c "select update_chg_stats('26 minute')"
