@@ -52,8 +52,8 @@ egrep -q -e '^hostssl( |\t)+all' /etc/postgresql/10/main/pg_hba.conf || \
 
 # Install timescale DB
 echo "===> Installing timescaleDB"
-wget -q https://timescalereleases.blob.core.windows.net/debian/timescaledb-postgresql-10_0.11.0~debian9_amd64.deb
-dpkg -i timescaledb-postgresql-10_0.11.0~debian9_amd64.deb
+wget -q https://timescalereleases.blob.core.windows.net/debian/timescaledb-postgresql-10_0.12.1~debian9_amd64.deb
+dpkg -i timescaledb-postgresql-10_0.12.1~debian9_amd64.deb
 
 
 # Update postgresql.conf

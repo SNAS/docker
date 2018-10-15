@@ -210,7 +210,7 @@ MAILTO=""
 21 * * * *	root  . /usr/local/openbmp/pg_profile && psql -c "select update_global_ip_rib();"
 
 # Purge time series data that is older than desired retention
-0 * 1,15 * *     root  . /usr/local/openbmp/pg_profile && psql -c "SELECT drop_chunks(interval '2 weeks');"
+0 * */3 * *     root  . /usr/local/openbmp/pg_profile && psql -c "SELECT drop_chunks(interval '2 weeks');"
 
 SETVAR
 
@@ -220,7 +220,6 @@ SETVAR
 # run_consumer
 # -----------------------------------------------
 run_consumer() {
-    cd /var/log
     echo "===> Starting consumer"
 
     if [[ ! -f /config/obmp-psql.yml ]]; then
@@ -238,8 +237,15 @@ run_consumer() {
 
     fi
 
+    if [[ $MEM -gt 20 ]]; then
+        heap_mem="3g"
+    else
+        heap_mem="2g"
+    fi
+
     # Run
-    java -Xmx2g -Xms128m -XX:+UseG1GC -XX:+UnlockExperimentalVMOptions \
+    cd /var/log
+    java -Xmx${heap_mem} -Xms128m -XX:+UseG1GC -XX:+UnlockExperimentalVMOptions \
          -XX:InitiatingHeapOccupancyPercent=30 -XX:G1MixedGCLiveThresholdPercent=30 \
          -XX:MaxGCPauseMillis=200 -XX:ParallelGCThreads=20 -XX:ConcGCThreads=5 \
          -Duser.timezone=UTC \
